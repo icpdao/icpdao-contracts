@@ -1,5 +1,18 @@
 pragma solidity ^0.8.0;
 
+/*
+需求如下
+1. 标准的 erc20 合约
+2. 合约创世时，需要产生一些 创世 token，这些 token 分成两部分 两部分比例是 100 比 lp_ratio
+  权重 100 的份额分配给 创世传入的分配地址
+  权重 lp_ratio 的份额，在后续需要一次性放入 uni v3 lp 池（单币放入）
+3. lp_ratio 需要初始化时，设置，后续不可以修改
+4. totalSupply 是个变化的值，根据创世 + 挖出来的数量决定
+5. 管理员可以调用挖矿接口，所以要可以设置管理员名单
+6. 挖矿接口，按照 98：2：lp_ratio 分配出去，需要注意：uni v3 lp 是单币进去
+7. 挖矿速度，需要初始化时设置，部署后不可以修改，速度指的是：每天可以挖出多少新token，可以是随着时间增加，每天的新token会变化，可以是一个公式
+
+*/
 contract Token {
 
   address staking_address;
@@ -28,7 +41,14 @@ contract Token {
     前 730 天作为第一个阶段，每天挖矿数量是 10*(10**18)
     后续 365 作为第二个周期，每天挖矿数量是 5*(10**18)
     后续 365 作为第三个周期，每天挖矿数量是 2.5*(10**18)
-  TODO 挖矿规则的表达形式待定
+  TODO 挖矿规则的表达形式待定 farm_config_day 和 farm_config_amount 有更好的形式，待讨论确定，可以是一个私有方法描述规则
+
+  lp_ratio 表示 每次挖矿 lp 的份额占的比例
+  比如 lp_ratio 是 120
+  那么每次挖矿出来的三部分分配权重如下
+    贡献者     98（固定）
+    进入质押    2（固定）
+    进入lp   120（根据 lp_ratio 数值决定）
 
   staking_address 质押合约地址
 
@@ -37,6 +57,7 @@ contract Token {
   constructor(
     address[] memory _genesis_address_list, uint256[] memory _genesis_amount,
     uint256[] memory farm_config_day, uint256[] memory farm_config_amount,
+    uint8 lp_ratio,
     address _staking_address,
     address _onwer
   ) {
