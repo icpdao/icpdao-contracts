@@ -123,14 +123,14 @@ contract Staking {
     查看 _user 选中的分红列表
   */
   function view_token_list(address _user)
-    external
+    public
     view
     returns (address[]){
     // TODO
   }
 
-  // 计算截止到当前 _user 可以获取 _token_address_list 对应的 token 种类的分红
-  function view_gain(address _user, address[] _token_address_list)
+  // 计算截止到当前 msg.sneder 可以获取 _token_address_list 对应的 token 种类的分红
+  function view_gain(address[] _token_address_list)
     external
     view
     returns (uint256[]){
