@@ -1,3 +1,13 @@
+---
+title: Mining-Function
+description: 每个 DAO-Token 的挖矿产出函数
+---
+
+# 概要
+
+用于 DAO-Token 中计算挖矿产出, 需要提供通用输入参数.
+
+# 说明
 
 $x$ 是距离合约部署的区块高度(经过的天数), $y=f(x) (x\ge0, x\subseteq N^+)$ 是在该区块高度(经过的天数)上的 token 产出.
 
@@ -24,8 +34,7 @@ y=f(x)=(\frac{1}{2})^{\lceil x-1\rceil}*10
 $$
 
 
-
-即通用的输入有:
+即通用的输入参数有:
 input|type|desc
 --|--|--
 P|int|
