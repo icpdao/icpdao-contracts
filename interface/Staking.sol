@@ -11,9 +11,9 @@ pragma solidity ^0.8.0;
 举例说明
 假设有 tokena 这种 dao token
 
-1. tokena 的挖矿接口内，会把挖矿的 1% 转账给 Staking，这个动作只会影响 Staking 的 tokena 余额，不会改变 Staking 合约的任何其他内容
+1. 会通过某种方式, 将 token 合约的 LP 手续费提取到 staking 合约, 手续费可能是 LP 的 tokena / tokenb ，这个动作只会影响 Staking 的 tokena / tokenb 余额，不会改变 Staking 合约的任何其他内容
 2. 用户会通过 UI 界面，向 Staking 质押一定数量的 ICPDAO
-3. 已经质押了 ICPDAO 的用户，会通过 UI 界面，单独增加或者减少自己要获取分红的 token 列表，比如把 tokena 放进去
+3. 已经质押了 ICPDAO 的用户，会通过 UI 界面，单独更新(增加/减少)自己要获取分红的 token 列表，比如把 tokena 放进去
 4. 用户给分红列表，增加 tokena 或 减少 tokena 时，会影响 PoolInfo 中的如下数据
 
   如下这个数值，和 tokena 余额配合计算，起到计算挖矿数量的作用
