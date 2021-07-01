@@ -28,40 +28,8 @@ $$
 即通用的输入有:
 input|type|desc
 --|--|--
-P|enum|函数类型
-$a$|int|
-$b$|int|
+P|int|
+$a$|fixed|
+$b$|fixed|
 $c$|int|
 $d$|int|
-
-额外的, 当 $L(x)$ 是常函数时, 
-
-input|type|desc
---|--|--
-C|uint|$L(x)=C$
-
-额外的, 当 $L(x)$ 是幂函数时,
-
-input|type|desc
---|--|--
-R|uint|$L(x)=x^r$
-
-额外的, 当 $L(x)$ 是指数函数时,
-
-input|type|desc
---|--|--
-A|uint|$L(x)=a^x$
-
-额外的, 当 $L(x)$ 是对数函数时,
-
-input|type|desc
---|--|--
-A|uint|$L(x)=\log_a{x}$
-
-额外的, 当 $L(x)$ 是(反)三角函数时,
-
-input|type|desc
---|--|--
-TF|三角函数类型|$L(x)=\sin x$
-
-$^*$ 在 solidity 中, 没有开方运算, 通用的做法是 uniswap 使用的[巴比伦算法](https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method), 同样的, 对于三角函数/对数函数, 可以使用泰勒展开表示, 结合后, 可以得到函数的高精度值.
