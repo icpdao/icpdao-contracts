@@ -21,11 +21,11 @@ DAO-Token 本质是一份具有多种特性的, 满足 ERC20 规范的 Token 合
 ```solidity
 constructor(
     // _genesis_token
-    address[] memory _genesis_token_address_list,
-    uint256[] memory _genesis_token_amount_list,
+    address[] _genesis_token_address_list,
+    uint256[] _genesis_token_amount_list,
 
-    // _temporary_token = _genesis_token * ( _lp_ratio / 100 )
-    uint8 _lp_ratio,
+    // _temporary_token = _genesis_token / 100 * _lp_ratio
+    uint256 _lp_ratio,
 
     // ICPDAO-Staking 合约地址
     address _staking_address,
@@ -34,14 +34,17 @@ constructor(
     address _owner_address,
 
     // 挖矿产出公式参数, 注意浮点型是否可用
-    int _mining_args_P,
-    fixed _mining_args_a,
-    fixed _mining_args_b,
-    int _mining_args_c,
-    int _mining_args_d,
+    int256 _mining_args_P,
+    int256 _mining_args_a_numerator,
+    int256 _mining_args_a_denominator,
+    int256 _mining_args_b_numerator,
+    int256 _mining_args_b_denominator,
+    int256 _mining_args_c,
+    int256 _mining_args_d,
 
     // ERC20 参数
-    ...
+    string _erc20_name,
+    string _erc20_symbol
 )
 ```
 
@@ -89,8 +92,8 @@ function update_lp_pool(
 ```solidity
 function mint(
     // _mint_token
-    address[] memory _mint_token_address_list,
-    uint256[] memory _mint_token_amount_list,
+    address[] _mint_token_address_list,
+    uint256[] _mint_token_amount_list,
 
     // _end_timestap <= block.timestap
     uint256 _end_timestap,
@@ -101,12 +104,12 @@ function mint(
 ```
 
 ## 质押
-该合约所具有的 `_token_lp_pool` 的交易手续费, 均可以被添加到 ICPDAO-Staking 合约中, 用于质押 ICP(ICPDAO 治理币) 的奖励. 从而激励 ICPDAO 社区的发展.
+该合约所具有的 `_token_lp_pool` 的交易手续费, 可以通过调用该方法被添加到 ICPDAO-Staking 合约中, 用于质押 ICP(ICPDAO 治理币) 的奖励. 从而激励 ICPDAO 社区的发展.
 
-同时, 调用者可以获得一定的奖励, 数量是提取手续费的 1%.
+被转账的手续费 99% 会转账进入 ICPDAO-Staking 合约，1% 会作为调用者的奖励.
 
 ```solidity
-function bonusWithDraw external
+function bonus_with_draw external
 ```
 
 ## 权限
