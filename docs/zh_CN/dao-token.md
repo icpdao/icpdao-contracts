@@ -7,7 +7,7 @@ description: 每个 DAO 借由 ICPDAO 所部署发行的 token
 
 每个在 ICPDAO 上所创建的 DAO 都可以借由 ICPDAO 部署 DAO-Token 合约, 即发行属于自己 DAO 的 token.
 
-DAO Owner 调用 ICPDAO 提供的 Token-Factory 合约及 [相关参数]() 即可部署本 DAO-Token 合约在以太坊上. 除此之外, ICPDAO 不认可通过其他方式创建的 DAO-Token 合约.
+DAO Owner 调用 ICPDAO 提供的 Token-Factory 合约即可部署本 DAO-Token 合约在以太坊上. 除此之外, ICPDAO 不认可通过其他方式创建的 DAO-Token 合约.
 
 DAO-Token 本质是一份具有多种特性的, 满足 ERC20 规范的 Token 合约.
 
@@ -113,11 +113,13 @@ function mint(
     uint256[] _mintTokenAmountList,
 
     // _endTimestap <= block.timestap
-    // _beginTimestap 是上一次 _endTimestap 或者 合约部署时间(上一次 _endTimestap 时)
+    // _beginTimestap 是上一次 _endTimestap 或者 合约部署时间(当第一次挖矿时)
+    // 本次挖矿周期是 [_beginTimestap, _endTimestap]
     uint256 _endTimestap,
 
-    // 挖矿时传 range order 下区间, 上区间无限大
-    int24 tickLower
+    // 挖矿时传 range order 下区间, 上区间一般无限大
+    int24 tickLower,
+    int24 tickUpper,
 ) external onlyOwnerOrManager
 ```
 

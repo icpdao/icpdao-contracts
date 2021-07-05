@@ -64,5 +64,5 @@ function bonusWithdraw(address[] _token_list) external
   _amount 是提取 ICP 的数量
   需要先结算一下分红，再退出
 */
-function withdraw(uint256 _amount) public
+function withdraw(uint256 _amount) external
 ```
