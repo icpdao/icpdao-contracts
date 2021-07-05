@@ -11,9 +11,8 @@ Note that only when the arbitrageur actively calls the bonusWithdraw method of t
 
 # Explanation
 
-Assuming that there is a DAO-Token like token0, there will be the following interactions. 1:
-
-After the arbitrageur actively calls the bonusWithdraw method of the DAO-Token, the fee will be transferred to the ICPDAO-Staking contract, and the fee may be token0(baseToken) / token1 of the _tokenLPPool of the DAO-Token (quoteToken), this action will only affect the token0 and token1 balance of ICPDAO-Staking, and will not change anything else in the ICPDAO-Staking contract. 2.
+Assuming that there is a DAO-Token like token0, there will be the following interactions:
+1. After the arbitrageur actively calls the bonusWithdraw method of the DAO-Token, the fee will be transferred to the ICPDAO-Staking contract, and the fee may be token0(baseToken) / token1(quoteToken), this action will only affect the token0 and token1 balance of ICPDAO-Staking, and will not change anything else in the ICPDAO-Staking contract.
 2. The user can pledge a certain amount of ICPs to ICPDAO-Staking. 3.
 3. Users who have already pledged ICPs can add/remove their own token list for withdrawing dividends
 
