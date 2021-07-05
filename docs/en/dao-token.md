@@ -5,9 +5,9 @@ description: The token issued by each DAO through ICPDAO deployment
 
 # Summary
 
-Each DAO created on ICPDAO can deploy a DAO-Token contract by ICPDAO, i.e., issue a token for its own DAO.
+Each DAO created on ICPDAO can deploy a DAO-Token contract through ICPDAO, i.e., issue a token of its own DAO.
 
-The DAO Owner can deploy this DAO-Token contract on Ether by calling the Token-Factory contract provided by ICPDAO. In addition, ICPDAO does not recognize DAO-Token contracts created by other means.
+The DAO Owner can deploy this DAO-Token contract on Ether by calling the Token-Factory contract provided by ICPDAO. Besides, ICPDAO does not recognize DAO-Token contracts created by other means.
 
 A DAO-Token is essentially a Token contract with various characteristics that meet the ERC20 specification.
 
@@ -17,13 +17,14 @@ A DAO-Token is essentially a Token contract with various characteristics that me
 ## Permissions
 
 ```solidity
-// owner can add a manager
+/// @notice owner can add a manager
 function addManager(address manager) external
 
-// The owner can remove a manager
+/// @notice owner can remove a manager
 function removeManager(address manager) external
 
-modify onlyOwnerOrManager {
+/// @notice only owner and manage have permission
+modifier onlyOwnerOrManager {
     // ...
     _;
 }
@@ -36,21 +37,23 @@ When the contract is deployed, you can specify and allocate the genesis token `_
 Also, you need to specify the ICPDAO-Staking contract address, DAO Owner wallet address, [mining formula parameters](./mining-function.md) and ERC20 parameters.
 
 ```solidity
+/// @param _genesisTokenAddressList _genesisToken address list
+/// @param _genesisTokenAmountList _genesisToken addresses corresponding to the number of token allocations
+/// @param _lpRatio _temporaryToken value is _genesisToken / 100 * _lpRatio
+/// @param _stakingAddress ICPDAO-Staking contract address
+/// @param _ownerAddress DAO Owner
+/// @param _miningArgs Mining formula parameters
+/// @param _erc20 ERC20 Parameters
 constructor(
-    // _genesisToken
     address[] _genesisTokenAddressList,
     uint256[] _genesisTokenAmountList,
 
-    // _temporaryToken = _genesisToken / 100 * _lpRatio
     uint256 _lpRatio,
 
-    // ICPDAO-Staking contract address
     address _stakingAddress,
 
-    // DAO Owner
     address _ownerAddress,
 
-    // Mineral extraction formula parameters, note if floating point is available
     int256 _miningArgsP,
     int256 _miningArgsANumerator,
     int256 _miningArgsADenominator,
@@ -59,7 +62,6 @@ constructor(
     int256 _miningArgsC,
     int256 _miningArgsD,
 
-    // ERC20 parameters
     string _erc20Name,
     string _erc20Symbol
 )
@@ -75,11 +77,12 @@ After the contract is deployed, the DAO Owner can add a portion of `_temporaryTo
 The `_quoteToken` type is generally a token that already has some consensus. for example, eth/usdc/dai.
 
 ```solidity
+/// @param _baseTokenAmount Number of tokens0 to be placed, _baseTokenAmount <= _temporaryToken
+/// @param _quoteTokenAddress The address of the quote token1 to be placed
+/// @param _quoteTokenAmount the number of quote tokens1 to be placed
 function createLPPool(
-    // _baseTokenAmount <= _temporaryToken
     uint256 _baseTokenAmount
 
-    // _transactionToken i.e. quotetoken
     address _quoteTokenAddress
     uint256 _quoteTokenAmount
 
@@ -89,9 +92,9 @@ function createLPPool(
 ### Add mobility
 The remaining `_temporaryToken` can be added to the `_tokenLPPool` by the DAO Owner at any time in any amount, multiple times. With uniswap v3's range order single coin additions.
 
-``solidity
+```solidity
+/// @param _baseTokenAmount Number of tokens0 to be added, _baseTokenAmount <= _temporaryToken
 function updateLPPool(
-    // _baseTokenAmount <= _temporaryToken
     uint256 _baseTokenAmount
 ) external onlyOwnerOrManager
 ```
@@ -107,17 +110,19 @@ The other part depends on the existence of the `_tokenLPPool` to determine its d
 If `_tokenLPPool` exists, it is added as a single coin, otherwise, it is added to `_temporaryToken`.
 
 ```solidity
+/// @param _mintTokenAddressList List of addresses assigned to DAO contributors by mining
+/// @param _mintTokenAmountList The corresponding number of digs assigned to DAO contributors
+/// @param _endTimestap The current mining cycle is [_beginTimestap, _endTimestap], 
+/// _beginTimestap is the last _endTimestap or contract deployment time (when first mined)
+/// _endTimestap <= block.timestap
+/// @param tickLower pass range order down interval when mining
+/// @param tickUpper pass range order upper interval when mining, generally infinite
 function mint(
-    // _mint_token
     address[] _mintTokenAddressList,
     uint256[] _mintTokenAmountList,
 
-    // _endTimestap <= block.timestap
-    // _beginTimestap is the last _endTimestap or contract deployment time (when first mined)
-    // This mining cycle is [_beginTimestap, _endTimestap]
     uint256 _endTimestap,
 
-    // pass range order lower interval when mining, upper interval is generally infinite
     int24 tickLower,
     int24 tickUpper,
 ) external onlyOwnerOrManager

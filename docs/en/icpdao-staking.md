@@ -20,49 +20,42 @@ After the arbitrageur actively calls the bonusWithdraw method of the DAO-Token, 
 ## Pledge
 
 ```solidity
-/*
-  Add pledge, _amount is the number of pledged ICPs
-  If the user already has a pledge and has added a list of bonus tokens
-  you need to settle the dividend first, and then add
-*/
+/// @notice to add a pledge, if the user already has a pledge and has added a list of bonus tokens, you need to settle the bonus first and then add it
+/// @param _amount Number of pledged ICPs
+/// @param _tokenList provides the list of dividends, which can be deleted and changed when the user pledges
 function deposit(
-    // The number of pledges
     uint256 _amount, 
-    // A list of provided bonuses, which can be changed when the user pledges.
     address[] _tokenList,
 ) external
 ```
 
-## Dividend List
+## Dividend list
 
-1. the user needs to actively select a limited list of dividends, the length of the list is not limited to the business, but the user needs to be reminded of the disadvantages of too long a length
+1. the user needs to actively select a finite list of dividends, the length of the list is not limited to the business, but the user needs to be reminded of the disadvantages of too long a length
 2. user can add/remove and view the dividend list
 
 ```solidity
-// Add/delete bonus list, user can delete/remove bonus list after pledge.
+/// @notice add/delete bonus list, user can delete/remove bonus list after pledge.
 function addTokenList(address[] _tokenList) external
 function removeTokenList(address[] _tokenList) external
-// View bonus details
+/// @notice View bonus details
 function tokenList external view returns (address[])
 ```
 
 ## View and extract dividends
 
 ```solidity
-// Calculate the bonus for the token type corresponding to _token_list as of the current msg.sender
+/// @notice calculates the bonus for the token type corresponding to _token_list as of the current msg.sender
 function bonus external view returns (address[], uint256[])
 
-// Draw your own bonus of the token type corresponding to _token_list
+/// @notice extracts the bonus of the token type corresponding to its _token_list
 function bonusWithdraw(address[] _token_list) external
 ```
 
 ## Exit pledge
 
 ```solidity
-/*
-  Exit pledge with bonus
-  _amount is the number of ICP withdrawals
-  You need to settle the dividends first, then exit
-*/
+/// @notice exit pledge with bonus, need to settle the bonus first, then exit
+/// @param _amount withdraws the amount of ICP
 function withdraw(uint256 _amount) external
 ```

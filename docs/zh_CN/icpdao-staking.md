@@ -20,15 +20,11 @@ description: 质押 ICPDAO 治理币获得各 DAO-Token 的分红
 ## 质押
 
 ```solidity
-/*
-  增加质押, _amount 是质押 ICP 的数量
-  如果用户以前已经有质押，并且增加过分红 token 列表
-  需要先结算一下分红，再增加
-*/
+/// @notice 增加质押, 如果用户以前已经有质押，并且增加过分红 token 列表, 需要先结算一下分红，再增加
+/// @param _amount 质押 ICP 的数量
+/// @param _tokenList 提供的分红列表, 用户质押时可以进行删改
 function deposit(
-    // 质押的数量
     uint256 _amount, 
-    // 提供的分红列表, 用户质押时可以进行删改.
     address[] _tokenList,
 ) external
 ```
@@ -39,30 +35,27 @@ function deposit(
 2. 用户可以增加/删除和查看分红列表
 
 ```solidity
-// 增加/删除分红列表, 用户质押后可以进行分红列表删改.
+/// @notice 增加/删除分红列表, 用户质押后可以进行分红列表删改.
 function addTokenList(address[] _tokenList) external
 function removeTokenList(address[] _tokenList) external
-// 查看分红详情
+/// @notice 查看分红详情
 function tokenList external view returns (address[])
 ```
 
 ## 查看和提取分红
 
 ```solidity
-// 计算截止到当前 msg.sender 可以获取 _token_list 对应的 token 种类的分红
+/// @notice 计算截止到当前 msg.sender 可以获取 _token_list 对应的 token 种类的分红
 function bonus external view returns (address[], uint256[])
 
-// 提取自己在 _token_list 对应的 token 种类的分红
+/// @notice 提取自己在 _token_list 对应的 token 种类的分红
 function bonusWithdraw(address[] _token_list) external
 ```
 
 ## 退出质押
 
 ```solidity
-/*
-  带分红退出质押
-  _amount 是提取 ICP 的数量
-  需要先结算一下分红，再退出
-*/
+/// @notice 带分红退出质押, 需要先结算一下分红，再退出
+/// @param _amount 提取 ICP 的数量
 function withdraw(uint256 _amount) external
 ```

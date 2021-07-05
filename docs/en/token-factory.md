@@ -18,23 +18,25 @@ TokenFactory has a tokens variable to record the list of deployed DAO-Tokens, DA
 ```solidity
 mapping (address => bool) public tokens;
 
+/// @param _stakingAddress ICPDAO-Staking contract address
 constructor (
-    // ICPDAO-Staking contract address
     address _stakingAddress
 )
 
+//// @param _genesisTokenAddressList _genesisToken address list
+/// @param _genesisTokenAmountList _genesisToken address corresponding token allocation number
+/// @param _lpRatio _temporaryToken value is _genesisToken / 100 * _lpRatio
+/// @param _ownerAddress DAO Owner
+/// @param _miningArgs Mineral extraction formula parameters
+/// @param _erc20 ERC20 parameter
 function deploy(
-    // _genesisToken
     address[] _genesisTokenAddressList,
     uint256[] _genesisTokenAmountList,
 
-    // _temporaryToken = _genesisToken / 100 * _lpRatio
     uint256 _lpRatio,
 
-    // DAO Owner
     address _ownerAddress,
 
-    // Mineral extraction formula parameters, note if floating point is available
     int256 _miningArgsP,
     int256 _miningArgsANumerator,
     int256 _miningArgsADenominator,
@@ -43,7 +45,6 @@ function deploy(
     int256 _miningArgsC,
     int256 _miningArgsD,
 
-    // ERC20 parameters
     string _erc20Name,
     string _erc20Symbol
 ) external
