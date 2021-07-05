@@ -22,7 +22,7 @@ f(x)=\begin{cases}
 \end{cases}
 $$
 
-   
+
 所有的挖矿曲线 $y=f(x) (x\ge0, x\subseteq N^+)$ 必须满足:
 $$
 y = f(x) =a^{\lceil bx+c\rceil} \ast P + d \ \ \ (其中a, b\subseteq  Q,\ P,c,d\subseteq N)
