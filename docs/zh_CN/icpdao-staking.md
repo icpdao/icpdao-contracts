@@ -39,6 +39,7 @@ function deposit(
 function addTokenList(address[] _tokenList) external
 function removeTokenList(address[] _tokenList) external
 /// @notice 查看分红详情
+/// @return token 地址列表
 function tokenList external view returns (address[])
 ```
 
@@ -46,6 +47,7 @@ function tokenList external view returns (address[])
 
 ```solidity
 /// @notice 计算截止到当前 msg.sender 可以获取 _token_list 对应的 token 种类的分红
+/// @return bonus 地址及地址对应的数量
 function bonus external view returns (address[], uint256[])
 
 /// @notice 提取自己在 _token_list 对应的 token 种类的分红

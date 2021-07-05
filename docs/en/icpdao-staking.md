@@ -39,6 +39,7 @@ function deposit(
 function addTokenList(address[] _tokenList) external
 function removeTokenList(address[] _tokenList) external
 /// @notice View bonus details
+/// @return token Address list
 function tokenList external view returns (address[])
 ```
 
@@ -46,9 +47,10 @@ function tokenList external view returns (address[])
 
 ```solidity
 /// @notice calculates the bonus for the token type corresponding to _token_list as of the current msg.sender
+/// @return bonus address and the number of addresses corresponding to it
 function bonus external view returns (address[], uint256[])
 
-/// @notice extracts the bonus of the token type corresponding to its _token_list
+/// @notice extracts the bonus of the token type corresponding to itself in _token_list
 function bonusWithdraw(address[] _token_list) external
 ```
 
