@@ -18,34 +18,34 @@ TokenFactory 有一个 tokens 变量记录已经部署的 DAO-Token 的名单, D
 ```solidity
 mapping (address => bool) public tokens;
 
-constructor(
+constructor (
     // ICPDAO-Staking 合约地址
-    address _staking_address
+    address _stakingAddress
 )
 
 function deploy(
-    // _genesis_token
-    address[] _genesis_token_address_list,
-    uint256[] _genesis_token_amount_list,
+    // _genesisToken
+    address[] _genesisTokenAddressList,
+    uint256[] _genesisTokenAmountList,
 
-    // _temporary_token = _genesis_token / 100 * _lp_ratio
-    uint256 _lp_ratio,
+    // _temporaryToken = _genesisToken / 100 * _lpRatio
+    uint256 _lpRatio,
 
     // DAO Owner
-    address _owner_address,
+    address _ownerAddress,
 
     // 挖矿产出公式参数, 注意浮点型是否可用
-    int256 _mining_args_P,
-    int256 _mining_args_a_numerator,
-    int256 _mining_args_a_denominator,
-    int256 _mining_args_b_numerator,
-    int256 _mining_args_b_denominator,
-    int256 _mining_args_c,
-    int256 _mining_args_d,
+    int256 _miningArgsP,
+    int256 _miningArgsANumerator,
+    int256 _miningArgsADenominator,
+    int256 _miningArgsBNumerator,
+    int256 _miningArgsBDenominator,
+    int256 _miningArgsC,
+    int256 _miningArgsD,
 
     // ERC20 参数
-    string _erc20_name,
-    string _erc20_symbol
+    string _erc20Name,
+    string _erc20Symbol
 ) external
 ```
 
