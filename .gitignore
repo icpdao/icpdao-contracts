@@ -7,3 +7,6 @@ crytic-export
 typechain
 
 .env
+
+.vscode
+.idea
