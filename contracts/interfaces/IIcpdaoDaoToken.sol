@@ -8,8 +8,12 @@ interface IIcpdaoDaoToken {
   function createLPPool(
     uint256 _baseTokenAmount,
     address _quoteTokenAddress,
-    uint256 _quoteTokenAmount
-  ) external;
+    uint256 _quoteTokenAmount,
+    uint24 fee,
+    uint160 sqrtPriceX96,
+    int24 tickLower,
+    int24 tickUpper
+  ) external payable;
 
   /// @param _baseTokenAmount 需要添加的 token0 数量, _baseTokenAmount <= _temporaryToken
   function updateLPPool(uint256 _baseTokenAmount) external;

@@ -1,6 +1,7 @@
 import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
+import "uniswap-v3-deploy-plugin"
 
 // // This is a sample Hardhat task. To learn how to create your own go to
 // // https://hardhat.org/guides/create-task.html
@@ -23,5 +24,13 @@ module.exports = {
   typechain: {
     outDir: 'src/types',
     target: 'ethers-v5',
+  },
+  networks: {
+    hardhat: {
+      forking: {
+        url: "https://eth-mainnet.alchemyapi.io/v2/IsvyJHT2uPB-J5CkSDaTQsxJsrM4KVAv",
+        blockNumber: 12811541
+      }
+    }
   },
 };
