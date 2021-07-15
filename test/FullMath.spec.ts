@@ -3,7 +3,7 @@ import { ethers } from 'hardhat'
 
 import { FullMathTest } from '../typechain'
 
-describe('FullMathTest', () => {
+describe('FullMath', () => {
     let fullMathTest: FullMathTest
     before('deploy test contract', async () => {
         const fullMathTestFactory = await ethers.getContractFactory('FullMathTest')
