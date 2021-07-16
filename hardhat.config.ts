@@ -23,7 +23,7 @@ module.exports = {
   solidity: "0.8.4",
   typechain: {
     outDir: 'src/types',
-    target: 'ethers-v5',
+    target: 'ethers-v5'
   },
   networks: {
     hardhat: {

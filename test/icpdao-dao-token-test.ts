@@ -8,6 +8,14 @@ import {abi as weth9Abi} from '../artifacts/contracts/test/interfaces/IWETH9.sol
 import JSBI from 'jsbi'
 import {FeeAmount, Position, TICK_SPACINGS} from '@uniswap/v3-sdk'
 
+
+import { abi as nonfungiblePositionManagerABI } from '@uniswap/v3-periphery/artifacts/contracts/interfaces/INonfungiblePositionManager.sol/INonfungiblePositionManager.json'
+import { INonfungiblePositionManager } from './mock/INonfungiblePositionManager'
+
+import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json';
+import { IUniswapV3Pool } from './mock/IUniswapV3Pool'
+
+
 import {
     Pool,
     priceToClosestTick,
@@ -110,6 +118,7 @@ describe("IcpdaoDaoToken", () => {
     let stakingAddress: string
     let weth9: IWETH9
     let gasPrice: BigNumber
+    let nonfungiblePositionManager: INonfungiblePositionManager
 
     before("init", async () => {
         nonfungiblePositionManagerAddress = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
@@ -122,6 +131,7 @@ describe("IcpdaoDaoToken", () => {
         stakingAddress = wallets[4].address;
         gasPrice = BigNumber.from(1).mul(10).pow(15);
         weth9 = (await ethers.getContractAt(weth9Abi, weth9Address)) as IWETH9
+        nonfungiblePositionManager = (await ethers.getContractAt(nonfungiblePositionManagerABI, nonfungiblePositionManagerAddress)) as INonfungiblePositionManager
     });
     it("create pool 1", async () => {
         // deploy helloToken
@@ -214,6 +224,28 @@ describe("IcpdaoDaoToken", () => {
         expect(await icpdaoDaoToken.balanceOf(await icpdaoDaoToken.lpPool())).eq(baseTokenAmount);
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(temporaryTokenAmountBefore.sub(baseTokenAmount));
         expect(await icpdaoDaoToken.balanceOf(ownerAccount.address)).eq(tokenCount);
+
+        const poolHaveIcpDaoTokenAmountBefore = await icpdaoDaoToken.balanceOf(await icpdaoDaoToken.lpPool());
+        const icpdaoDaoTokenHaveIcpDaoTokenAmountBefore = await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address);
+
+        let tx4 = await icpdaoDaoToken.connect(ownerAccount).updateLPPool(
+            200
+        )
+        const tx4Done = await tx4.wait();
+
+        expect(await helloToken.balanceOf(ownerAccount.address)).eq(BigNumber.from(quoteTokenAmount).mul(9));
+        expect(await helloToken.balanceOf(icpdaoDaoToken.address)).eq(0);
+        expect(await helloToken.balanceOf(await icpdaoDaoToken.lpPool())).eq(quoteTokenAmount);
+
+        expect(await icpdaoDaoToken.balanceOf(ownerAccount.address)).eq(tokenCount);
+
+        const poolHaveIcpDaoTokenAmountAfter = await icpdaoDaoToken.balanceOf(await icpdaoDaoToken.lpPool());
+        const icpdaoDaoTokenHaveIcpDaoTokenAmountAfter = await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address);
+
+        const cha = poolHaveIcpDaoTokenAmountAfter.sub(poolHaveIcpDaoTokenAmountBefore);
+        expect(cha).eq(icpdaoDaoTokenHaveIcpDaoTokenAmountBefore.sub(icpdaoDaoTokenHaveIcpDaoTokenAmountAfter));
+
+        expect(200).to.greaterThanOrEqual(cha.toNumber());
     })
 
     it("create pool 2", async () => {
@@ -264,6 +296,10 @@ describe("IcpdaoDaoToken", () => {
         // console.log("baseTokenAmount", baseTokenAmount)
         // console.log("quoteTokenAmount", quoteTokenAmount)
 
+        console.log("mock position tickLower", (position as Position).tickLower.toString());
+        console.log("mock position tickUpper", (position as Position).tickUpper.toString());
+        console.log("mock pool.tickCurrent", (mockPool as Pool).tickCurrent.toString());
+
         // weth9 余额
         expect(await weth9.balanceOf(ownerAccount.address)).eq(0);
         expect(await weth9.balanceOf(icpdaoDaoToken.address)).eq(0);
@@ -309,5 +345,35 @@ describe("IcpdaoDaoToken", () => {
         )
         expect(await ethers.provider.getBalance(icpdaoDaoToken.address)).eq(0)
         expect(await ethers.provider.getBalance(await icpdaoDaoToken.lpPool())).eq(0)
+
+        const poolHaveIcpDaoTokenAmountBefore = await icpdaoDaoToken.balanceOf(await icpdaoDaoToken.lpPool());
+        const icpdaoDaoTokenHaveIcpDaoTokenAmountBefore = await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address);
+
+        let tx4 = await icpdaoDaoToken.connect(ownerAccount).updateLPPool(
+            200
+        )
+        const tx4Done = await tx4.wait();
+
+        expect(await icpdaoDaoToken.balanceOf(ownerAccount.address)).eq(tokenCount);
+
+        const poolHaveIcpDaoTokenAmountAfter = await icpdaoDaoToken.balanceOf(await icpdaoDaoToken.lpPool());
+        const icpdaoDaoTokenHaveIcpDaoTokenAmountAfter = await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address);
+
+        const cha = poolHaveIcpDaoTokenAmountAfter.sub(poolHaveIcpDaoTokenAmountBefore);
+        expect(cha).eq(icpdaoDaoTokenHaveIcpDaoTokenAmountBefore.sub(icpdaoDaoTokenHaveIcpDaoTokenAmountAfter));
+
+        expect(200).to.greaterThanOrEqual(cha.toNumber());
+
+
+        // const tokenId = (await nonfungiblePositionManager.tokenOfOwnerByIndex(icpdaoDaoToken.address, 0)).toNumber()
+        // console.log("tokenId", tokenId)
+        // const currentPosition = (await nonfungiblePositionManager.positions(tokenId))
+
+        // const uniswapV3Pool: IUniswapV3Pool = (await ethers.getContractAt(IUniswapV3PoolABI, await icpdaoDaoToken.lpPool())) as IUniswapV3Pool
+        // const slot0 = (await uniswapV3Pool.slot0())
+        //
+        // console.log("slot0.tick", slot0.feeProtocol)
+
+
     })
 })
