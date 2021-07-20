@@ -2,6 +2,7 @@
 pragma solidity >=0.8.4;
 
 interface IDAOStaking {
+    
     function deposit(
         uint256 _amount, 
         address[] memory _tokenList
@@ -17,7 +18,7 @@ interface IDAOStaking {
 
     function tokenList() external view returns (address[] memory);
 
-    function bonus() external view returns (address[] memory, uint256[] memory);
+    function bonus() external returns (address[] memory, uint256[] memory);
 
     /// @notice 提取自己在 _token_list 对应的 token 种类的分红
     function bonusWithdraw(
