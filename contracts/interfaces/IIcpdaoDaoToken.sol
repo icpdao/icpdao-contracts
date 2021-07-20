@@ -27,7 +27,7 @@ interface IIcpdaoDaoToken {
   /// @param tickUpper 挖矿时传 range order 上区间, 一般无限大
   function mint(
     address[] calldata _mintTokenAddressList,
-    uint256[] calldata _mintTokenAmountList,
+    uint24[] calldata _mintTokenAmountList,
     uint256 _endTimestap,
     int24 tickLower,
     int24 tickUpper

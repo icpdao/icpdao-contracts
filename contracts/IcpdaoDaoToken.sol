@@ -21,15 +21,19 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
 
   address public stakingAddress;
 
-  uint256 public temporaryTokenAmount;
+  // TODO 挖矿公式数据上限导致代币溢出，所以参数的数据类型不能太大
+  struct MiningArg {
+    int16 p;
+    int16 aNumerator;
+    int16 aDenominator;
+    int16 bNumerator;
+    int16 bDenominator;
+    int16 c;
+    int16 d;
+  }
 
-  int256 public miningArgsP;
-  int256 public miningArgsANumerator;
-  int256 public miningArgsADenominator;
-  int256 public miningArgsBNumerator;
-  int256 public miningArgsBDenominator;
-  int256 public miningArgsC;
-  int256 public miningArgsD;
+  MiningArg public miningArg;
+
   address public lpPool;
 
   address private _nonfungiblePositionManagerAddress =
@@ -42,18 +46,20 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
   mapping(uint24 => int24) tickLowerMap;
   mapping(uint24 => int24) tickUpperMap;
 
+  uint256 public mintLastTimestamp;
+  uint256 public mintLastN;
+
   constructor(
     address[] memory genesisTokenAddressList_,
     uint256[] memory genesisTokenAmountList_,
     uint256 lpRatio_,
     address stakingAddress_,
     address ownerAddress_,
-    int256[] memory miningArg,
+    MiningArg memory miningArg_,
     string memory erc20Name_,
     string memory erc20Symbol_
   ) ERC20(erc20Name_, erc20Symbol_) {
     require(genesisTokenAddressList_.length == genesisTokenAmountList_.length);
-    require(miningArg.length == 7);
 
     tickLowerMap[500] = -887270;
     tickLowerMap[3000] = -887220;
@@ -67,13 +73,10 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
     stakingAddress = stakingAddress_;
     transferOwnership(ownerAddress_);
 
-    miningArgsP = miningArg[0];
-    miningArgsANumerator = miningArg[1];
-    miningArgsADenominator = miningArg[2];
-    miningArgsBNumerator = miningArg[3];
-    miningArgsBDenominator = miningArg[4];
-    miningArgsC = miningArg[5];
-    miningArgsD = miningArg[6];
+    miningArg = miningArg_;
+
+    mintLastTimestamp = (block.timestamp / 86400) * 86400;
+    mintLastN = 0;
 
     // 分配创世
     uint256 genesisTotalAmount = 0;
@@ -81,8 +84,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
       _mint(genesisTokenAddressList_[index], genesisTokenAmountList_[index]);
       genesisTotalAmount = genesisTotalAmount + genesisTokenAmountList_[index];
     }
-    temporaryTokenAmount = (genesisTotalAmount / 100) * lpRatio;
-    _mint(address(this), temporaryTokenAmount);
+    _mint(address(this), (genesisTotalAmount / 100) * lpRatio);
   }
 
   receive() external payable {}
@@ -158,33 +160,20 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
 
   function updateLPPool(uint256 _baseTokenAmount) external override {
     require(lpPool != address(0));
-    require(_baseTokenAmount <= temporaryTokenAmount);
+    require(_baseTokenAmount <= balanceOf(address(this)));
 
-    IUniswapV3Pool pool = IUniswapV3Pool(lpPool);
-
-    (, int24 tick, , , , , ) = pool.slot0();
-
-    uint24 fee = pool.fee();
-    int24 tickSpacing = pool.tickSpacing();
-
-    int24 tickLower;
-    int24 tickUpper;
-    address quoteTokenAddress;
-    if (address(this) == pool.token0()) {
-      tickLower = getNearestTickLower(tick, fee, tickSpacing);
-      tickUpper = tickUpperMap[fee];
-      quoteTokenAddress = pool.token1();
-    } else {
-      tickLower = tickLowerMap[fee];
-      tickUpper = getNearestTickUpper(tick, fee, tickSpacing);
-      quoteTokenAddress = pool.token0();
-    }
+    (
+      address quoteTokenAddress,
+      uint24 fee,
+      int24 tickLower,
+      int24 tickUpper
+    ) = getNearestSingleMintParams();
 
     INonfungiblePositionManager.MintParams memory params = buildMintParams(
       _baseTokenAmount,
       quoteTokenAddress,
       0,
-      pool.fee(),
+      fee,
       tickLower,
       tickUpper
     );
@@ -205,13 +194,58 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
 
   function mint(
     address[] calldata _mintTokenAddressList,
-    uint256[] calldata _mintTokenAmountList,
-    uint256 _endTimestap,
+    uint24[] calldata _mintTokenAmountRatioList,
+    uint256 _endTimestamp,
     int24 tickLower,
     int24 tickUpper
-  ) external override {}
+  ) external override {
+    console.log("mint", mintLastTimestamp, _endTimestamp, block.timestamp);
+    require(_mintTokenAddressList.length == _mintTokenAmountRatioList.length);
+    require(_endTimestamp <= block.timestamp);
+    require(_endTimestamp >= mintLastTimestamp);
 
-  function bonusWithdraw() external override {}
+    (
+      uint256 mintValue,
+      uint256 _mintLastTimestamp,
+      uint256 _mintLastN
+    ) = getMintValue(_endTimestamp);
+
+    console.log("mintValue", mintValue);
+
+    mintLastTimestamp = _mintLastTimestamp;
+    mintLastN = _mintLastN;
+
+    // 给贡献者分配 token
+    uint256 ratioSum = 0;
+    for (uint256 index; index < _mintTokenAmountRatioList.length; index++) {
+      ratioSum += _mintTokenAmountRatioList[index];
+    }
+    for (uint256 index; index < _mintTokenAmountRatioList.length; index++) {
+      _mint(
+        _mintTokenAddressList[index],
+        (mintValue * _mintTokenAmountRatioList[index]) / ratioSum
+      );
+    }
+
+    // 根据 _mintTokenAddressList lpRatio_ 分配 token
+    // lpMintValue = value / 100 * _lpRatio
+    uint256 lpMintValue = (mintValue * lpRatio) / 100;
+    _mint(address(this), lpMintValue);
+
+    console.log("lpMintValue", lpMintValue);
+    // 单币放入 uniswap
+    if (lpPool != address(0)) {
+      mintToLP(lpMintValue, tickLower, tickUpper);
+    }
+  }
+
+  function bonusWithdraw() external override {
+    // TODO
+    // 一直单币放
+    // 会一直创建 positions
+    //  positions 过多，会导致 gas 越来越多
+    // 因为是 for 循环
+  }
 
   function buildMintParams(
     uint256 _baseTokenAmount,
@@ -280,5 +314,111 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
     // TODO 测试
     int24 bei = (tick - tickLowerMap[fee]) / tickSpacing;
     tickLower = tickLowerMap[fee] + tickSpacing * bei;
+  }
+
+  function getNearestSingleMintParams()
+    private
+    view
+    returns (
+      address quoteTokenAddress,
+      uint24 fee,
+      int24 tickLower,
+      int24 tickUpper
+    )
+  {
+    IUniswapV3Pool pool = IUniswapV3Pool(lpPool);
+
+    (, int24 tick, , , , , ) = pool.slot0();
+
+    fee = pool.fee();
+
+    int24 tickSpacing = pool.tickSpacing();
+
+    if (address(this) == pool.token0()) {
+      tickLower = getNearestTickLower(tick, fee, tickSpacing);
+      tickUpper = tickUpperMap[fee];
+      quoteTokenAddress = pool.token1();
+    } else {
+      tickLower = tickLowerMap[fee];
+      tickUpper = getNearestTickUpper(tick, fee, tickSpacing);
+      quoteTokenAddress = pool.token0();
+    }
+  }
+
+  function getMintValue(uint256 _endTimestamp)
+    private
+    view
+    returns (
+      uint256 mintValue,
+      uint256 _newMintLastTimestamp,
+      uint256 _newMintLastN
+    )
+  {
+    require(_endTimestamp <= block.timestamp);
+    require(_endTimestamp >= mintLastTimestamp);
+
+    uint256 day = (_endTimestamp - mintLastTimestamp) / 86400;
+    require(day >= 1);
+
+    _newMintLastTimestamp = day * 86400 + mintLastTimestamp;
+    _newMintLastN = mintLastN + day;
+
+    // TODO 暴力循环可能非 GAS ,待优化
+    for (int256 currentDay = 1; currentDay <= int256(day); currentDay++) {
+      uint256 s = int256ToUint256Zero(
+        (currentDay * miningArg.bNumerator) /
+          miningArg.bDenominator +
+          miningArg.c
+      );
+      mintValue += int256ToUint256Zero(
+        miningArg.d +
+          ((int256(miningArg.aNumerator)**s) * miningArg.p) /
+          (int256(miningArg.aDenominator)**s)
+      );
+    }
+  }
+
+  function mintToLP(
+    uint256 lpMintValue,
+    int24 tickLower,
+    int24 tickUpper
+  ) private {
+    (
+      address quoteTokenAddress,
+      uint24 fee,
+      int24 nearestTickLower,
+      int24 nearestTickUpper
+    ) = getNearestSingleMintParams();
+
+    require(tickLower >= nearestTickLower);
+    require(tickUpper <= nearestTickUpper);
+
+    INonfungiblePositionManager.MintParams memory params = buildMintParams(
+      lpMintValue,
+      quoteTokenAddress,
+      0,
+      fee,
+      tickLower,
+      tickUpper
+    );
+
+    // TODO 目前的实现并不能精确的把 _baseTokenAmount 完全放入进去
+    params.amount0Min = 0;
+    (, , uint256 amount0, uint256 amount1) = _nonfungiblePositionManager.mint(
+      params
+    );
+    console.log("amount0 amount1", amount0, amount1);
+  }
+
+  function int256ToUint256Zero(int256 input)
+    private
+    pure
+    returns (uint256 result)
+  {
+    if (input > 0) {
+      result = uint256(input);
+    } else {
+      result = 0;
+    }
   }
 }
