@@ -29,11 +29,11 @@ contract DAOStaking is IDAOStaking {
     uint256 totalStaking;
     uint256 lastBlock;
 
-    IERC20 public immutable ICPTOKEN;
+    IERC20 public ICPTOKEN;
+    address public constant OWNER = 0x7702f02E3251D1eD3AC5396088B512C7C490106e;
 
-    constructor (
-        address _ICP
-    ) {
+    function setICPToken(address _ICP) external override {
+        require(msg.sender == OWNER, "ONLY ONWNER CAN SET ICPTOKEN");
         ICPTOKEN = IERC20(_ICP);
     }
 

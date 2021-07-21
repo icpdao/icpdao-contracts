@@ -8,6 +8,7 @@ interface IDAOToken is
     IDAOPermission,
     IDAOEvents
 {
+
     function createLPPool(
         uint256 _baseTokenAmount,
         address _quoteTokenAddress,

@@ -32,7 +32,7 @@ contract DAOToken is IDAOToken, ERC20 {
     
     MintMath.Anchor public anchor;
 
-    mapping (address=>bool) managers;
+    mapping (address=>bool) public managers;
 
     modifier onlyOwner() {
         require(_msgSender() == _owner, "ICPDAO: NOT OWNER");
