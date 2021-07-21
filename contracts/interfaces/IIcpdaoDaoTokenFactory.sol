@@ -1,5 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
+pragma abicoder v2;
 
 interface IIcpdaoDaoTokenFactory {
   /// @param _genesisTokenAddressList _genesisToken 地址列表

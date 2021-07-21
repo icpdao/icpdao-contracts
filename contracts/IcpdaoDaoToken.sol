@@ -1,5 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
+pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -15,15 +16,13 @@ import "./interfaces/IIcpdaoDaoToken.sol";
 import "./libraries/TransferHelper.sol";
 
 contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
-  uint256 private constant MAX_INT =
-    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
   uint256 public lpRatio;
 
   address public stakingAddress;
 
   // TODO 挖矿公式数据上限导致代币溢出，所以参数的数据类型不能太大
   struct MiningArg {
-    int16 p;
+    int128 p;
     int16 aNumerator;
     int16 aDenominator;
     int16 bNumerator;
@@ -35,6 +34,9 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
   MiningArg public miningArg;
 
   address public lpPool;
+
+  address public lpToken0;
+  address public lpToken1;
 
   address private _nonfungiblePositionManagerAddress =
     0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
@@ -106,14 +108,14 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
     TransferHelper.safeApprove(
       address(this),
       _nonfungiblePositionManagerAddress,
-      MAX_INT
+      type(uint256).max
     );
 
     if (_quoteTokenAddress != _weth9) {
       TransferHelper.safeApprove(
         _quoteTokenAddress,
         _nonfungiblePositionManagerAddress,
-        MAX_INT
+        type(uint256).max
       );
 
       TransferHelper.safeTransferFrom(
@@ -132,6 +134,9 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
       tickLower,
       tickUpper
     );
+
+    lpToken0 = params.token0;
+    lpToken1 = params.token1;
 
     lpPool = _nonfungiblePositionManager.createAndInitializePoolIfNecessary(
       params.token0,
@@ -240,11 +245,114 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
   }
 
   function bonusWithdraw() external override {
-    // TODO
-    // 一直单币放
-    // 会一直创建 positions
-    //  positions 过多，会导致 gas 越来越多
-    // 因为是 for 循环
+    uint256 count = _nonfungiblePositionManager.balanceOf(address(this));
+    uint256[] memory tokenIdList = new uint256[](count);
+    for (uint256 index = 0; index < count; index++) {
+      tokenIdList[index] = _nonfungiblePositionManager.tokenOfOwnerByIndex(
+        address(this),
+        index
+      );
+      console.log("set", index, tokenIdList[index]);
+    }
+    _bonusWithdrawByTokenIdList(tokenIdList);
+  }
+
+  function bonusWithdrawByTokenIdList(uint256[] memory tokenIdList)
+    external
+    override
+  {
+    for (uint256 index = 0; index < tokenIdList.length; index++) {
+      uint256 tokenId = tokenIdList[index];
+      address owner = _nonfungiblePositionManager.ownerOf(tokenId);
+      require(owner == msg.sender);
+    }
+    _bonusWithdrawByTokenIdList(tokenIdList);
+  }
+
+  function _bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) private {
+    uint256 token0TotalAmount;
+    uint256 token1TotalAmount;
+
+    uint256 token0Add;
+    uint256 token1Add;
+    for (uint256 index = 0; index < tokenIdList.length; index++) {
+      (token0Add, token1Add) = _bonusWithdrawByTokenId(tokenIdList[index]);
+      console.log(
+        "_bonusWithdrawByTokenId",
+        tokenIdList[index],
+        token0Add,
+        token1Add
+      );
+      token0TotalAmount += token0Add;
+      token1TotalAmount += token1Add;
+    }
+
+    if (token0TotalAmount > 0) {
+      uint256 bonusToken0TotalAmount = token0TotalAmount / 100;
+      uint256 stackingToken0TotalAmount = token0TotalAmount -
+        bonusToken0TotalAmount;
+
+      TransferHelper.safeTransfer(
+        lpToken0,
+        stakingAddress,
+        stackingToken0TotalAmount
+      );
+      TransferHelper.safeTransfer(lpToken0, msg.sender, bonusToken0TotalAmount);
+    }
+
+    if (token1TotalAmount > 0) {
+      uint256 bonusToken1TotalAmount = token1TotalAmount / 100;
+      uint256 stackingToken1TotalAmount = token1TotalAmount -
+        bonusToken1TotalAmount;
+
+      TransferHelper.safeTransfer(
+        lpToken1,
+        stakingAddress,
+        stackingToken1TotalAmount
+      );
+      TransferHelper.safeTransfer(lpToken1, msg.sender, bonusToken1TotalAmount);
+    }
+  }
+
+  function _bonusWithdrawByTokenId(uint256 tokenId)
+    private
+    returns (uint256 token0Add, uint256 token1Add)
+  {
+    (
+      ,
+      ,
+      address token0,
+      address token1,
+      ,
+      ,
+      ,
+      ,
+      ,
+      ,
+      ,
+
+    ) = _nonfungiblePositionManager.positions(tokenId);
+
+    if (lpToken0 != token0 || lpToken1 != token1) {
+      token0Add = 0;
+      token1Add = 0;
+    } else {
+
+        INonfungiblePositionManager.CollectParams memory bonusParams
+       = INonfungiblePositionManager.CollectParams({
+        tokenId: tokenId,
+        recipient: address(this),
+        amount0Max: type(uint128).max,
+        amount1Max: type(uint128).max
+      });
+      ERC20 token0ERC20 = ERC20(token0);
+      ERC20 token1ERC20 = ERC20(token1);
+      uint256 token0Before = token0ERC20.balanceOf(address(this));
+      uint256 token1Before = token1ERC20.balanceOf(address(this));
+      _nonfungiblePositionManager.collect(bonusParams);
+      token0Add = token0ERC20.balanceOf(address(this)) - token0Before;
+      token1Add = token1ERC20.balanceOf(address(this)) - token1Before;
+    }
   }
 
   function buildMintParams(

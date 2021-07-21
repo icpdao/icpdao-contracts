@@ -1,5 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
+pragma abicoder v2;
 
 interface IIcpdaoDaoToken {
   /// @param _baseTokenAmount 需要放置的 token0 数量, _baseTokenAmount <= _temporaryToken
@@ -34,4 +35,6 @@ interface IIcpdaoDaoToken {
   ) external;
 
   function bonusWithdraw() external;
+
+  function bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) external;
 }

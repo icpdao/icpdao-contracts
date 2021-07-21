@@ -20,7 +20,20 @@ import "uniswap-v3-deploy-plugin"
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.8.4",
+  solidity: {
+    compilers: [{
+      version: "0.8.4",
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 1000,
+        }
+      }
+    }]
+  },
+  mocha: {
+    timeout: 40000
+  },
   typechain: {
     outDir: 'src/types',
     target: 'ethers-v5'
