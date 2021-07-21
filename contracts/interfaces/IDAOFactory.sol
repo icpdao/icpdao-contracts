@@ -8,6 +8,7 @@ interface IDAOFactory {
         uint256 _lpRatio,
         address _ownerAddress,
         uint256[7] memory _miningArgs,
+        string memory _daoID,
         string memory _erc20Name,
         string memory _erc20Symbol
     ) external returns (address token);

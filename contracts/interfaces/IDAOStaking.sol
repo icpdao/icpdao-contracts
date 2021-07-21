@@ -2,6 +2,7 @@
 pragma solidity >=0.8.4;
 
 interface IDAOStaking {
+    function setICPToken(address _ICP) external;
     
     function deposit(
         uint256 _amount, 

@@ -11,7 +11,6 @@ interface IDAOPermission {
         view
         returns (address);
 
-
     /// @notice Add Manager to the DAO.
     /// @dev if the manager is already a manager, nothing will happen.
     /// @param manager The address of the manager.
