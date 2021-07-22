@@ -30,10 +30,17 @@ contract DAOStaking is IDAOStaking {
     uint256 lastBlock;
 
     IERC20 public ICPTOKEN;
-    address public constant OWNER = 0x7702f02E3251D1eD3AC5396088B512C7C490106e;
+    address public ICP;
+    address public immutable OWNER;
+
+    constructor () {
+        OWNER = msg.sender;
+    }
 
     function setICPToken(address _ICP) external override {
-        require(msg.sender == OWNER, "ONLY ONWNER CAN SET ICPTOKEN");
+        require(msg.sender == OWNER, "ICPDAO: ONLY ONWNER CAN SET ICPTOKEN");
+        require(ICP == address(0), "ICPDAO: ICP ADDRESS EXITST");
+        ICP = _ICP;
         ICPTOKEN = IERC20(_ICP);
     }
 
@@ -72,7 +79,7 @@ contract DAOStaking is IDAOStaking {
     function deposit(
         uint256 _amount, 
         address[] memory _tokenList
-    ) external override {
+    ) external override { 
         require(_amount > 0, "ICPDAO: AMOUNT IS ZERO");
         require(msg.sender != address(this), "ICPDAO: SENDER IS DAO");
         

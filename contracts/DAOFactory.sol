@@ -23,15 +23,15 @@ contract DAOFactory is IDAOFactory {
         uint256 _lpRatio,
         address _ownerAddress,
         uint256[7] memory _miningArgs,
-        string _daoID,
+        string memory _daoID,
         string memory _erc20Name,
         string memory _erc20Symbol
     ) external override returns (address token) {
         if (tokens[_daoID] != address(0)) {
             IDAOToken oldToken = IDAOToken(tokens[_daoID]);
-            require(oldToken.managers()[msg.sender] || msg.sender == oldToken.owner(), "ICPDAO: NOT OWNER OR MANAGER DO REDEPLOY");
+            require(oldToken.isManager(msg.sender) || msg.sender == oldToken.owner(), "ICPDAO: NOT OWNER OR MANAGER DO REDEPLOY");
         }
-        token = address(new DAOToken{salt: keccak256(abi.encode("ICPDAO", _daoID))}(
+        token = address(new DAOToken(
             _genesisTokenAddressList, _genesisTokenAmountList,
             _lpRatio, staking, _ownerAddress, _miningArgs, _erc20Name, _erc20Symbol
         ));

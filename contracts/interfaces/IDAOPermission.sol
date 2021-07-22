@@ -11,6 +11,11 @@ interface IDAOPermission {
         view
         returns (address);
 
+    function isManager(address _address)
+        external
+        view
+        returns (bool);
+
     /// @notice Add Manager to the DAO.
     /// @dev if the manager is already a manager, nothing will happen.
     /// @param manager The address of the manager.

@@ -16,20 +16,19 @@ interface IDAOToken is
         uint24 _fee,
         int24 _tickLower,
         int24 _tickUpper,
-        uint160 _sqrtPriceX96,
-        uint256 _deadline
+        uint160 _sqrtPriceX96
     ) external payable;
 
     function updateLPPool(
-        uint256 _baseTokenAmount,
-        uint256 _deadline
+        uint256 _baseTokenAmount
     ) external;
 
     function mint(
         address[] memory _mintTokenAddressList,
         uint256[] memory _mintTokenAmountList,
         uint256 _endTimestamp,
-        uint256 _deadline
+        int24 tickLower,
+        int24 tickUpper
     ) external;
 
     function bonusWithdraw() external;
