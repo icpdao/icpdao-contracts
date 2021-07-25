@@ -10,7 +10,7 @@ describe("DAOFactory", async () => {
     before("deploy mock staking && factory", async () => {
         const [w1, w2, w3] = await ethers.getSigners();
         const erc20Mock = await ethers.getContractFactory('ERC20Mock');
-        mockStaking = (await erc20Mock.deploy([w1.address, w2.address, w3.address], [100, 100, 100])) as ERC20Mock;
+        mockStaking = (await erc20Mock.deploy([w1.address, w2.address, w3.address], [100, 100, 100], "Mock", "MOCK")) as ERC20Mock;
         const daoFactory_ = await ethers.getContractFactory('DAOFactory');
         daoFactory = (await daoFactory_.deploy(mockStaking.address)) as DAOFactory;
     })
