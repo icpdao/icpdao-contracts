@@ -8,11 +8,13 @@ import '../interfaces/IDAOPermission.sol';
 contract ERC20Mock is ERC20, IDAOPermission {
     address private immutable _owner;
     mapping (address=>bool) public managers;
-    
+
     constructor (
         address[] memory _genesisTokenAddressList,
-        uint256[] memory _genesisTokenAmountList
-    ) ERC20("Mock", "MOCK") {
+        uint256[] memory _genesisTokenAmountList,
+        string memory _erc20Name,
+        string memory _erc20Symbol
+    ) ERC20(_erc20Name, _erc20Symbol) {
         for (uint256 i = 0; i < _genesisTokenAddressList.length; i++) {
             _mint(_genesisTokenAddressList[i], _genesisTokenAmountList[i]);
         }
