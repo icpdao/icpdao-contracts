@@ -11,12 +11,14 @@ import "./interfaces/IDAOToken.sol";
 
 import "./libraries/FullMath.sol";
 import "./libraries/MintMath.sol";
+import "./libraries/UniswapMath.sol";
 
 /// @title DAO Token Contracts.
 contract DAOToken is IDAOToken, ERC20 {
     using FullMath for uint256;
     using MintMath for MintMath.Anchor;
     using SafeERC20 for IERC20;
+    using UniswapMath for INonfungiblePositionManager;
 
     address private _owner;
     uint256 private _temporaryAmount;
@@ -27,9 +29,6 @@ contract DAOToken is IDAOToken, ERC20 {
     address public lpToken0;
     address public lpToken1;
     address public lpPool;
-
-    mapping(uint24 => int24) tickLowerMap;
-    mapping(uint24 => int24) tickUpperMap;
     
     address public constant UNISWAP_V3_POSITIONS = 0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
     address public constant WETH9 = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
@@ -72,13 +71,6 @@ contract DAOToken is IDAOToken, ERC20 {
         _owner = _ownerAddress;
         staking = _stakingAddress;
         lpRatio = _lpRatio;
-
-        tickLowerMap[500] = -887270;
-        tickLowerMap[3000] = -887220;
-        tickLowerMap[10000] = -887200;
-        tickUpperMap[500] = -tickLowerMap[500];
-        tickUpperMap[3000] = -tickLowerMap[3000];
-        tickUpperMap[10000] = -tickLowerMap[10000];
     }
 
     function owner() external view virtual override returns (address) {
@@ -120,18 +112,9 @@ contract DAOToken is IDAOToken, ERC20 {
             IERC20(_quoteTokenAddress).safeTransferFrom(_msgSender(), address(this), _quoteTokenAmount);
         }
 
-        INonfungiblePositionManager.MintParams memory params = buildMintParams(
-            _baseTokenAmount, _quoteTokenAddress, _quoteTokenAmount,
-            _fee, _tickLower, _tickUpper
+        (lpPool, lpToken0, lpToken1) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).createDAOTokenPool(
+            _baseTokenAmount, _quoteTokenAddress, _quoteTokenAmount, _fee, _tickLower, _tickUpper, _sqrtPriceX96
         );
-
-        lpToken0 = params.token0;
-        lpToken1 = params.token1;
-
-        lpPool = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).createAndInitializePoolIfNecessary(
-            lpToken0, lpToken1, _fee, _sqrtPriceX96);
-        
-        INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mint{value: msg.value}(params);
 
         if (_quoteTokenAddress == WETH9) {
             INonfungiblePositionManager(UNISWAP_V3_POSITIONS).refundETH();
@@ -150,26 +133,7 @@ contract DAOToken is IDAOToken, ERC20 {
         require(_baseTokenAmount <= _temporaryAmount, "ICPDAO: NOT ENOUGH TEMPORARYAMOUNT");
         require(lpPool != address(0), "ICPDAO: LP POOL DOES NOT EXIST");
 
-        (address quoteTokenAddress, uint24 fee, int24 tickLower, int24 tickUpper) = getNearestSingleMintParams();
-        INonfungiblePositionManager.MintParams memory params = buildMintParams(
-            _baseTokenAmount,
-            quoteTokenAddress,
-            0,
-            fee,
-            tickLower,
-            tickUpper
-        );
-        // TODO 目前的实现并不能精确的把 _baseTokenAmount 完全放入进去
-        // 原因如下
-        // 即使是单币放入 pool.mint 方法也会 根据 tickLower 和 tickUpper 计算实际放入的 token 数量
-        // 如果 tickLower 和 tickUpper 边界距离 currentTick 太近
-        // 实际放入的 token 数量 会比 _baseTokenAmount 稍微少一些
-        // 但是如果 tickLower 和 tickUpper 边界距离 currentTick 太远，对我们的逻辑有害处
-        // 实际放入的 token 数量的具体计算还没有搞懂
-        params.amount0Min = 0;
-        (, , uint256 amount0, uint256 amount1) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mint(params);
-        console.log("amount0 amount1", amount0, amount1);
-        // if (address(this).balance > 0) IERC20(address(this)).safeTransfer(_msgSender(), address(this).balance);
+        INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mintToLP(lpPool, _baseTokenAmount);
         _temporaryAmount -= _baseTokenAmount;
     }
 
@@ -199,7 +163,7 @@ contract DAOToken is IDAOToken, ERC20 {
         if (lpPool == address(0)) {
             _temporaryAmount += thisTemporaryAmount;
         } else {
-            mintToLP(thisTemporaryAmount, tickLower, tickUpper);
+            INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mintToLPByTick(lpPool, thisTemporaryAmount, tickLower, tickUpper);
         }
     }
 
@@ -229,124 +193,6 @@ contract DAOToken is IDAOToken, ERC20 {
             INonfungiblePositionManager(UNISWAP_V3_POSITIONS).collect(params);
             INonfungiblePositionManager(UNISWAP_V3_POSITIONS).collect(bonusParams);
         }        
-    }
-
-    // 
-    function buildMintParams(
-        uint256 _baseTokenAmount,
-        address _quoteTokenAddress,
-        uint256 _quoteTokenAmount,
-        uint24 fee,
-        int24 tickLower,
-        int24 tickUpper
-    )
-        private
-        view
-        returns (INonfungiblePositionManager.MintParams memory params)
-    {
-        address token0;
-        address token1;
-        uint256 amount0Desired;
-        uint256 amount1Desired;
-        if (address(this) > _quoteTokenAddress) {
-            token0 = _quoteTokenAddress;
-            token1 = address(this);
-            amount0Desired = _quoteTokenAmount;
-            amount1Desired = _baseTokenAmount;
-        } else {
-            token0 = address(this);
-            token1 = _quoteTokenAddress;
-            amount0Desired = _baseTokenAmount;
-            amount1Desired = _quoteTokenAmount;
-        }
-
-        uint256 amount0Min = (amount0Desired * 9975) / 10000;
-        uint256 amount1Min = (amount1Desired * 9975) / 10000;
-        uint256 deadline = block.timestamp + 60 * 60;
-
-        params = INonfungiblePositionManager.MintParams({
-            token0: token0,
-            token1: token1,
-            fee: fee,
-            tickLower: tickLower,
-            tickUpper: tickUpper,
-            amount0Desired: amount0Desired,
-            amount1Desired: amount1Desired,
-            amount0Min: amount0Min,
-            amount1Min: amount1Min,
-            recipient: address(this),
-            deadline: deadline
-        });
-    }
-
-    function getNearestSingleMintParams()
-        private
-        view
-        returns (
-            address quoteTokenAddress,
-            uint24 fee,
-            int24 tickLower,
-            int24 tickUpper
-        )
-    {
-        IUniswapV3Pool pool = IUniswapV3Pool(lpPool);
-
-        (, int24 tick, , , , , ) = pool.slot0();
-
-        fee = pool.fee();
-
-        int24 tickSpacing = pool.tickSpacing();
-
-        if (address(this) == pool.token0()) {
-            tickLower = getNearestTickLower(tick, fee, tickSpacing);
-            tickUpper = tickUpperMap[fee];
-            quoteTokenAddress = pool.token1();
-        } else {
-            tickLower = tickLowerMap[fee];
-            tickUpper = getNearestTickUpper(tick, fee, tickSpacing);
-            quoteTokenAddress = pool.token0();
-        }
-    }
-
-    function getNearestTickLower(
-        int24 tick,
-        uint24 fee,
-        int24 tickSpacing
-    ) private view returns (int24 tickLower) {
-        // 比 tick 大
-        // TODO 测试
-        int24 bei = (tickUpperMap[fee] - tick) / tickSpacing;
-        tickLower = tickUpperMap[fee] - tickSpacing * bei;
-    }
-
-    function getNearestTickUpper(
-        int24 tick,
-        uint24 fee,
-        int24 tickSpacing
-    ) private view returns (int24 tickLower) {
-        // 比 tick 小
-        // TODO 测试
-        int24 bei = (tick - tickLowerMap[fee]) / tickSpacing;
-        tickLower = tickLowerMap[fee] + tickSpacing * bei;
-    }
-
-    function mintToLP(
-        uint256 lpMintValue,
-        int24 tickLower,
-        int24 tickUpper
-    ) private {
-        (address quoteTokenAddress, uint24 fee, int24 nearestTickLower, int24 nearestTickUpper) = getNearestSingleMintParams();
-
-        require(tickLower >= nearestTickLower);
-        require(tickUpper <= nearestTickUpper);
-
-        INonfungiblePositionManager.MintParams memory params = buildMintParams(
-            lpMintValue, quoteTokenAddress, 0, fee, tickLower, tickUpper);
-
-        // TODO 目前的实现并不能精确的把 _baseTokenAmount 完全放入进去
-        params.amount0Min = 0;
-        (, , uint256 amount0, uint256 amount1) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mint(params);
-        console.log(amount0, amount1);
     }
 
     receive() external payable {}
