@@ -119,29 +119,39 @@ library MintMath {
         uint256 endTimestamp
     ) internal returns (uint256) {
         uint256 d = last.args[6];
-        uint256 lastTimestamp = last.lastTimestamp;
         uint256 p = last.args[0];
         uint256 an = last.args[1];
         uint256 ad = last.args[2];
         uint256 bn = last.args[3];
         uint256 bd = last.args[4];
         uint256 c = last.args[5];
-        uint256 n = last.n;
+
+        uint256 beginN = last.n + 1;
+        uint256 n = last.n + (endTimestamp - last.lastTimestamp) / 86400;
+
         uint256 result;
-        assembly {
-            n := add(div(sub(endTimestamp, lastTimestamp), 86400), n)
+        uint256 lastCoefficient;
+        uint256 lastValue;
+
+        for (uint256 i = beginN; i <= n; i++) {
+            uint256 coefficient = mulDiv(bn, i, bd);
+            uint256 value = lastValue;
+            if (coefficient != lastCoefficient || i == beginN) {
+                value = coefficient + c;
+                value = (((an ** value ) * p) * 1e12) / (ad ** value);
+                value += d * 1e12;
+                if (value < 0) value = 0;
+                lastValue = value;
+                lastCoefficient = coefficient;
+                console.log("calculate");
+            }
+            result += value;
+            console.log(i, lastCoefficient, lastValue, result);
         }
-        uint256 s;
-        for (uint256 i = last.n + 1; i <= n; i++) {
-            s = mulDiv(bn, i, bd) + c;
-            s = ((an ** s ) * p) / (ad ** s);
-            s += d;
-            if (s < 0) s = 0;
-            result += s;
-            console.log(n, i, s, result);
-        }
+
         last.lastTimestamp = endTimestamp;
         last.n = n;
+        result = result / 1e12;
         return result;
     }
 }

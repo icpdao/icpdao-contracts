@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 import './interfaces/IDAOStaking.sol';
 
@@ -27,8 +27,8 @@ contract DAOStaking is IDAOStaking {
         uint256 accPerShare;
     }
 
-    mapping (address=>UserInfo) users;
-    mapping (address=>RewardToken) rewardTokens;
+    mapping (address=>UserInfo) private users;
+    mapping (address=>RewardToken) private rewardTokens;
     uint256 totalStaking;
     uint256 lastBlock;
 
@@ -80,8 +80,8 @@ contract DAOStaking is IDAOStaking {
         address[] memory tokenList_;
 
         tokenList_ = this.tokenList(msg.sender);
-
         _bonusWithdraw(msg.sender, tokenList_);
+
         _addTokenList(msg.sender, _tokenList);
         tokenList_ = this.tokenList(msg.sender);
 
@@ -113,47 +113,54 @@ contract DAOStaking is IDAOStaking {
 
     function _addTokenList(address _user, address[] memory _tokenList) private {
         for (uint256 i = 0; i < _tokenList.length; i++) {
+            update(_tokenList[i]);
             users[_user].tokens.add(_tokenList[i]);
         }
     }
 
-    function update(address token) internal {
+    function update(address token) private {
         RewardToken storage reward = rewardTokens[token];
         if (block.number <= reward.lastRewardBlock) {
             return;
         }
         uint256 currentAmount = IERC20(token).balanceOf(address(this));
-
-        if (reward.lastRewardBlock == 0) {
+        
+        if (address(reward.token) == address(0)) {
             reward.token = IERC20(token);
             reward.amount = currentAmount;
         }
 
-        if (totalStaking > 0) reward.accPerShare += (currentAmount - reward.amount) / totalStaking;
-        console.log(currentAmount, reward.amount, totalStaking, reward.accPerShare);
+        // console.log(currentAmount, reward.amount, reward.accPerShare, totalStaking);
+        if (totalStaking > 0) reward.accPerShare += (currentAmount - reward.amount) * 1e12 / totalStaking;
+        
+        reward.amount = currentAmount;
         reward.lastRewardBlock = block.number;
+        // console.log(token, reward.amount, reward.accPerShare, reward.lastRewardBlock);
         emit UpdateBonus(token, reward.amount, reward.accPerShare, reward.lastRewardBlock);
     }
 
     function _bonusWithdrawToken(address _user, address _token) private {
         uint256 reward = _bonusToken(_user, _token);
         IERC20(_token).safeTransfer(_user, reward);
-        users[_user].rewardDebt[_token] += reward;
+        users[_user].rewardDebt[_token] += reward * 1e12;
+        rewardTokens[_token].amount -= reward;
         emit Bonus(_user, _token, reward);
     }
 
     function _bonusWithdraw(address _user, address[] memory _tokenList) private {
         for (uint256 i = 0; i < _tokenList.length; i++) {
-            _bonusWithdrawToken(_user, _tokenList[i]);
+            if (users[_user].tokens.contains(_tokenList[i])) _bonusWithdrawToken(_user, _tokenList[i]);
         }
     }
 
     function _bonusToken(address _user, address _token) private returns (uint256 reward) {
         update(_token);
-        reward = rewardTokens[_token].accPerShare * users[_user].amount - users[_user].rewardDebt[_token];
+        reward = (rewardTokens[_token].accPerShare * users[_user].amount - users[_user].rewardDebt[_token]) / 1e12;
     }
 
     function _withdraw(address _user, uint256 _amount) private {
+        uint256 amount = users[_user].amount;
+        _amount = amount <= _amount ? amount : _amount;
         address[] memory tokens = this.tokenList(_user);
         for (uint256 i = 0; i < tokens.length; i++) {
             address _token = tokens[i];
