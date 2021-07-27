@@ -3,7 +3,9 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+
 import "hardhat/console.sol";
 
 import "./interfaces/external/INonfungiblePositionManager.sol";
@@ -111,14 +113,26 @@ contract DAOToken is IDAOToken, ERC20 {
             IERC20(_quoteTokenAddress).safeApprove(UNISWAP_V3_POSITIONS, MAX_UINT256);
             IERC20(_quoteTokenAddress).safeTransferFrom(_msgSender(), address(this), _quoteTokenAmount);
         }
-
-        (lpPool, lpToken0, lpToken1) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).createDAOTokenPool(
-            _baseTokenAmount, _quoteTokenAddress, _quoteTokenAmount, _fee, _tickLower, _tickUpper, _sqrtPriceX96
+        console.log(116);
+        console.log(_baseTokenAmount, _quoteTokenAddress, _quoteTokenAmount, _fee);
+        console.log(msg.value);
+        INonfungiblePositionManager.MintParams memory params = UniswapMath.buildMintParams(
+            _baseTokenAmount, _quoteTokenAddress, _quoteTokenAmount,
+            _fee, _tickLower, _tickUpper
         );
+        lpPool = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).createAndInitializePoolIfNecessary(
+            params.token0, params.token1, _fee, _sqrtPriceX96);
+        lpToken0 = params.token0;
+        lpToken1 = params.token1;
+        INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mint{value: msg.value}(params);
 
         if (_quoteTokenAddress == WETH9) {
             INonfungiblePositionManager(UNISWAP_V3_POSITIONS).refundETH();
-            if (address(this).balance > 0) IERC20(address(this)).safeTransfer(_msgSender(), address(this).balance);
+            if (address(this).balance > 0) {
+                // safeTransfer(_msgSender(), address(this).balance);
+                (bool success, ) = _msgSender().call{value: address(this).balance}(new bytes(0));
+                require(success, 'ICPDAO: refund ETH transfer failed');
+            }
         }
         if (_quoteTokenAddress != WETH9) {
             uint256 balance_ = IERC20(_quoteTokenAddress).balanceOf(address(this));
@@ -155,11 +169,10 @@ contract DAOToken is IDAOToken, ERC20 {
         uint256 thisTemporaryAmount = userAmount.divMul(100, lpRatio);
         require(totalSum >= (userAmount + thisTemporaryAmount), "ICPDAO: MINT TOTAL TOKEN < USER AMOUNT");
         _mint(address(this), totalSum);
-        
         for (uint256 i = 0; i < _mintTokenAddressList.length; i++) {
             IERC20(address(this)).safeTransfer(_mintTokenAddressList[i], _mintTokenAmountList[i]);
         }
-        
+
         if (lpPool == address(0)) {
             _temporaryAmount += thisTemporaryAmount;
         } else {
