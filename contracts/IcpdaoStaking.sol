@@ -54,6 +54,8 @@ contract IcpdaoStaking is IIcpdaoStaking {
   function setIcpdaoToken(address _icpdaoToken) external override onlyOwner {
     require(icpdaoToken == address(0));
     icpdaoToken = _icpdaoToken;
+
+    emit SetIcpdaoToken(_icpdaoToken);
   }
 
   function deposit(uint256 _amount, address[] calldata _addTokenList)
@@ -99,6 +101,8 @@ contract IcpdaoStaking is IIcpdaoStaking {
       // 增加列表
       newTokenList.add(token);
     }
+
+    emit Deposit(msg.sender, _amount, _addTokenList);
   }
 
   function withdraw(uint256 _amount) external override {
@@ -122,9 +126,13 @@ contract IcpdaoStaking is IIcpdaoStaking {
     if (_amount == userAmount) {
       delete userStackInfo[msg.sender].tokens;
     }
+
+    emit Withdraw(msg.sender, _amount);
   }
 
   function addTokenList(address[] calldata _addTokenList) external override {
+    require(_addTokenList.length > 0, "_addTokenList cannot be empty");
+
     for (uint256 index; index <= _addTokenList.length; index++) {
       address token = _addTokenList[index];
       require(poolInfos[token].userPoolInfo[msg.sender].stake == false);
@@ -136,12 +144,16 @@ contract IcpdaoStaking is IIcpdaoStaking {
       _mintWithToken(token);
       _addUserStackAmountWithToken(token);
     }
+
+    emit AddTokenList(msg.sender, _addTokenList);
   }
 
   function removeTokenList(address[] calldata _removeTokenList)
     external
     override
   {
+    require(_removeTokenList.length > 0, "_removeTokenList cannot be empty");
+
     for (uint256 index = 0; index < _removeTokenList.length; index++) {
       address token = _removeTokenList[index];
       require(poolInfos[token].userPoolInfo[msg.sender].stake);
@@ -157,6 +169,8 @@ contract IcpdaoStaking is IIcpdaoStaking {
       );
       userTokenList.remove(token);
     }
+
+    emit RemoveTokenList(msg.sender, _removeTokenList);
   }
 
   function tokenList(address user)
@@ -225,6 +239,8 @@ contract IcpdaoStaking is IIcpdaoStaking {
   function transferOwnership(address newOwner) external override onlyOwner {
     require(newOwner != address(0));
     _owner = newOwner;
+
+    emit TransferOwnership(newOwner);
   }
 
   function _tokenList(address user)
@@ -262,6 +278,12 @@ contract IcpdaoStaking is IIcpdaoStaking {
         pool.blanceHaveMintAmount +
         preAdd *
         pool.userStakingIcpdaoAmount;
+
+      emit MintWithToken(
+        token,
+        msg.sender,
+        preAdd * pool.userStakingIcpdaoAmount
+      );
     }
   }
 
@@ -276,6 +298,8 @@ contract IcpdaoStaking is IIcpdaoStaking {
       if (pending > 0) {
         TransferHelper.safeTransfer(token, msg.sender, pending);
         pool.blanceHaveMintAmount = pool.blanceHaveMintAmount - pending;
+
+        emit BonusWithdrawWithToken(token, msg.sender, pending);
       }
     }
   }

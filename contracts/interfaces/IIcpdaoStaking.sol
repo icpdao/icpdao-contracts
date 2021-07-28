@@ -32,4 +32,21 @@ interface IIcpdaoStaking {
   function owner() external view returns (address);
 
   function transferOwnership(address newOwner) external;
+
+  event SetIcpdaoToken(address _icpdaoToken);
+  event Deposit(address indexed user, uint256 _amount, address[] _tokenList);
+  event Withdraw(address indexed user, uint256 _amount);
+  event AddTokenList(address indexed user, address[] _tokenList);
+  event RemoveTokenList(address indexed user, address[] _tokenList);
+  event BonusWithdrawWithToken(
+    address indexed token,
+    address indexed user,
+    uint256 amount
+  );
+  event TransferOwnership(address newOwner);
+  event MintWithToken(
+    address indexed token,
+    address indexed operator,
+    uint256 mint_amount
+  );
 }

@@ -637,7 +637,7 @@ describe("IcpdaoDaoToken", () => {
         icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as IcpdaoDaoToken;
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
 
-        await (await icpdaoDaoToken.addManager(user1Account.address)).wait();
+        await (await icpdaoDaoToken.connect(ownerAccount).addManager(user1Account.address)).wait();
         await (await icpdaoDaoTokenFactory.connect(user1Account).deploy(
             [ownerAccount.address, user1Account.address, user2Account.address],
             [tokenCount, tokenCount, tokenCount],
@@ -659,8 +659,6 @@ describe("IcpdaoDaoToken", () => {
         icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
         icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as IcpdaoDaoToken;
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
-
-
 
     })
 })

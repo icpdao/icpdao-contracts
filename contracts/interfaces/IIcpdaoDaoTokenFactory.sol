@@ -22,4 +22,16 @@ interface IIcpdaoDaoTokenFactory {
     string memory _erc20Name,
     string memory _erc20Symbol
   ) external returns (address token);
+
+  event Deploy(
+    address[] _genesisTokenAddressList,
+    uint256[] _genesisTokenAmountList,
+    uint256 _lpRatio,
+    address _ownerAddress,
+    IIcpdaoDaoToken.MiningArg miningArg_,
+    string indexed daoId,
+    string _erc20Name,
+    string _erc20Symbol,
+    address token
+  );
 }

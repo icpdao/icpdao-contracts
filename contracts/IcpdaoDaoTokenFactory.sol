@@ -44,5 +44,17 @@ contract IcpdaoDaoTokenFactory is IIcpdaoDaoTokenFactory {
       )
     );
     tokens[daoId] = token;
+
+    emit Deploy(
+      _genesisTokenAddressList,
+      _genesisTokenAmountList,
+      _lpRatio,
+      _ownerAddress,
+      _miningArg,
+      daoId,
+      _erc20Name,
+      _erc20Symbol,
+      token
+    );
   }
 }

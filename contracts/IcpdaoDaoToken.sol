@@ -169,6 +169,16 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
         );
       }
     }
+
+    emit CreateLPPool(
+      _baseTokenAmount,
+      _quoteTokenAddress,
+      _quoteTokenAmount,
+      fee,
+      sqrtPriceX96,
+      tickLower,
+      tickUpper
+    );
   }
 
   function updateLPPool(uint256 _baseTokenAmount)
@@ -207,6 +217,7 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
       params
     );
     console.log("amount0 amount1", amount0, amount1);
+    emit UpdateLPPool(_baseTokenAmount);
   }
 
   function mint(
@@ -254,6 +265,14 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
     if (lpPool != address(0)) {
       mintToLP(lpMintValue, tickLower, tickUpper);
     }
+
+    emit Mint(
+      _mintTokenAddressList,
+      _mintTokenAmountRatioList,
+      _endTimestamp,
+      tickLower,
+      tickUpper
+    );
   }
 
   function bonusWithdraw() external override {
@@ -283,11 +302,15 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
   function addManager(address manager) external override onlyOwner {
     require(!managers.contains(manager));
     managers.add(manager);
+
+    emit AddManager(manager);
   }
 
   function removeManager(address manager) external override onlyOwner {
     require(managers.contains(manager));
     managers.remove(manager);
+
+    emit RemoveManager(manager);
   }
 
   function isManager(address manager)
@@ -306,6 +329,8 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
   function transferOwnership(address newOwner) external override onlyOwner {
     require(newOwner != address(0));
     _owner = newOwner;
+
+    emit TransferOwnership(newOwner);
   }
 
   function _bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) private {
@@ -351,6 +376,13 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
       );
       TransferHelper.safeTransfer(lpToken1, msg.sender, bonusToken1TotalAmount);
     }
+
+    emit BonusWithdrawByTokenIdList(
+      msg.sender,
+      tokenIdList,
+      token0TotalAmount,
+      token1TotalAmount
+    );
   }
 
   function _bonusWithdrawByTokenId(uint256 tokenId)
