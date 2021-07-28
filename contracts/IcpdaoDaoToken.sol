@@ -3,7 +3,7 @@ pragma solidity ^0.8.4;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+// import "@openzeppelin/contracts/access/Ownable.sol";
 
 // import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 
@@ -14,24 +14,21 @@ import "hardhat/console.sol";
 
 import "./interfaces/IIcpdaoDaoToken.sol";
 import "./libraries/TransferHelper.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
+contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
+  using EnumerableSet for EnumerableSet.AddressSet;
+
+  EnumerableSet.AddressSet managers;
+
+  address private _owner;
+
   uint256 public lpRatio;
 
   address public stakingAddress;
 
   // TODO 挖矿公式数据上限导致代币溢出，所以参数的数据类型不能太大
-  struct MiningArg {
-    int128 p;
-    int16 aNumerator;
-    int16 aDenominator;
-    int16 bNumerator;
-    int16 bDenominator;
-    int16 c;
-    int16 d;
-  }
-
-  MiningArg public miningArg;
+  IIcpdaoDaoToken.MiningArg public miningArg;
 
   address public lpPool;
 
@@ -42,8 +39,6 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
     0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
   INonfungiblePositionManager private _nonfungiblePositionManager =
     INonfungiblePositionManager(_nonfungiblePositionManagerAddress);
-
-  address private _weth9 = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
   mapping(uint24 => int24) tickLowerMap;
   mapping(uint24 => int24) tickUpperMap;
@@ -57,7 +52,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
     uint256 lpRatio_,
     address stakingAddress_,
     address ownerAddress_,
-    MiningArg memory miningArg_,
+    IIcpdaoDaoToken.MiningArg memory miningArg_,
     string memory erc20Name_,
     string memory erc20Symbol_
   ) ERC20(erc20Name_, erc20Symbol_) {
@@ -73,7 +68,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
 
     lpRatio = lpRatio_;
     stakingAddress = stakingAddress_;
-    transferOwnership(ownerAddress_);
+    _owner = ownerAddress_;
 
     miningArg = miningArg_;
 
@@ -111,7 +106,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
       type(uint256).max
     );
 
-    if (_quoteTokenAddress != _weth9) {
+    if (_quoteTokenAddress != _nonfungiblePositionManager.WETH9()) {
       TransferHelper.safeApprove(
         _quoteTokenAddress,
         _nonfungiblePositionManagerAddress,
@@ -147,7 +142,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
 
     _nonfungiblePositionManager.mint{ value: msg.value }(params);
 
-    if (_quoteTokenAddress == _weth9) {
+    if (_quoteTokenAddress == _nonfungiblePositionManager.WETH9()) {
       _nonfungiblePositionManager.refundETH();
       if (address(this).balance > 0) {
         TransferHelper.safeTransferETH(msg.sender, address(this).balance);
@@ -263,10 +258,38 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
   {
     for (uint256 index = 0; index < tokenIdList.length; index++) {
       uint256 tokenId = tokenIdList[index];
-      address owner = _nonfungiblePositionManager.ownerOf(tokenId);
-      require(owner == msg.sender);
+      require(_nonfungiblePositionManager.ownerOf(tokenId) == msg.sender);
     }
     _bonusWithdrawByTokenIdList(tokenIdList);
+  }
+
+  function addManager(address manager) external override {
+    require(!managers.contains(manager));
+    managers.add(manager);
+  }
+
+  function removeManager(address manager) external override {
+    require(managers.contains(manager));
+    managers.remove(manager);
+  }
+
+  function isManager(address manager)
+    external
+    view
+    override
+    returns (bool result)
+  {
+    result = managers.contains(manager);
+  }
+
+  function owner() external view override returns (address result) {
+    result = _owner;
+  }
+
+  function transferOwnership(address newOwner) external override {
+    require(newOwner != address(0));
+    require(msg.sender == _owner);
+    _owner = newOwner;
   }
 
   function _bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) private {

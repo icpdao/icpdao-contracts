@@ -3,6 +3,16 @@ pragma solidity ^0.8.4;
 pragma abicoder v2;
 
 interface IIcpdaoDaoToken {
+  struct MiningArg {
+    int128 p;
+    int16 aNumerator;
+    int16 aDenominator;
+    int16 bNumerator;
+    int16 bDenominator;
+    int16 c;
+    int16 d;
+  }
+
   /// @param _baseTokenAmount 需要放置的 token0 数量, _baseTokenAmount <= _temporaryToken
   /// @param _quoteTokenAddress 需要放置的报价 token1 的地址
   /// @param _quoteTokenAmount 需要放置的报价 token1 的数量
@@ -37,4 +47,14 @@ interface IIcpdaoDaoToken {
   function bonusWithdraw() external;
 
   function bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) external;
+
+  function addManager(address manager) external;
+
+  function removeManager(address manager) external;
+
+  function isManager(address manager) external returns (bool);
+
+  function owner() external view returns (address);
+
+  function transferOwnership(address newOwner) external;
 }

@@ -3,6 +3,8 @@ pragma solidity ^0.8.4;
 pragma abicoder v2;
 
 interface IIcpdaoStaking {
+  function setIcpdaoToken(address _icpdaoToken) external;
+
   function mint(address token) external;
 
   /// @notice 增加质押, 如果用户以前已经有质押，并且增加过分红 token 列表, 需要先结算一下分红，再增加

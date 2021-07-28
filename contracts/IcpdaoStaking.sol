@@ -9,7 +9,8 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 contract IcpdaoStaking is IIcpdaoStaking {
   using EnumerableSet for EnumerableSet.AddressSet;
 
-  IERC20 public icpdaoToken;
+  address public owner;
+  address public icpdaoToken;
   // 用户质押 ICPDAO 的总数量
   uint256 userStakingIcpdaoTotalAmount;
 
@@ -25,7 +26,7 @@ contract IcpdaoStaking is IIcpdaoStaking {
     // 用户不能得到的分红总数
     uint256 rewardDebt;
     // 用户有质押这个 pool
-    bool stack;
+    bool stake;
   }
 
   // 每种分红 token 的信息
@@ -40,6 +41,16 @@ contract IcpdaoStaking is IIcpdaoStaking {
 
   // token address => pool info
   mapping(address => PoolInfo) poolInfos;
+
+  constructor(address _owner) {
+    owner = _owner;
+  }
+
+  function setIcpdaoToken(address _icpdaoToken) external override {
+    require(msg.sender == owner);
+    require(icpdaoToken == address(0));
+    icpdaoToken = _icpdaoToken;
+  }
 
   function mint(address token) external override {
     _mintWithToken(token);
@@ -69,7 +80,7 @@ contract IcpdaoStaking is IIcpdaoStaking {
 
     // 把用户的 _amount ICPDAO 转入合约
     TransferHelper.safeTransferFrom(
-      address(icpdaoToken),
+      icpdaoToken,
       msg.sender,
       address(this),
       _amount
@@ -82,21 +93,20 @@ contract IcpdaoStaking is IIcpdaoStaking {
     EnumerableSet.AddressSet storage newTokenList = userStackInfo[msg.sender]
     .tokens;
     for (uint256 index; index <= _addTokenList.length; index++) {
+      address token = _addTokenList[index];
       // 更新 pool 中 用户个人数据
-      _addUserStackAmountWithToken(_addTokenList[index]);
+      _addUserStackAmountWithToken(token);
       // 增加列表
-      newTokenList.add(_addTokenList[index]);
+      newTokenList.add(token);
     }
   }
 
   function withdraw(uint256 _amount) external override {
-    EnumerableSet.AddressSet storage userTokenList = userStackInfo[msg.sender]
-    .tokens;
-    require(userTokenList.length() > 0);
-
     uint256 userAmount = userStackInfo[msg.sender].amount;
     require(_amount <= userAmount);
 
+    EnumerableSet.AddressSet storage userTokenList = userStackInfo[msg.sender]
+    .tokens;
     for (uint256 index; index <= userTokenList.length(); index++) {
       address token = userTokenList.at(index);
       _mintAndBonusWithDrawAndRemoveStackWithToken(token, _amount);
@@ -107,7 +117,7 @@ contract IcpdaoStaking is IIcpdaoStaking {
       _amount;
     userStakingIcpdaoTotalAmount = userStakingIcpdaoTotalAmount - _amount;
 
-    TransferHelper.safeTransfer(address(icpdaoToken), msg.sender, _amount);
+    TransferHelper.safeTransfer(icpdaoToken, msg.sender, _amount);
 
     if (_amount == userAmount) {
       delete userStackInfo[msg.sender].tokens;
@@ -117,7 +127,7 @@ contract IcpdaoStaking is IIcpdaoStaking {
   function addTokenList(address[] calldata _addTokenList) external override {
     for (uint256 index; index <= _addTokenList.length; index++) {
       address token = _addTokenList[index];
-      require(poolInfos[token].userPoolInfo[msg.sender].stack == false);
+      require(poolInfos[token].userPoolInfo[msg.sender].stake == false);
     }
 
     for (uint256 index; index <= _addTokenList.length; index++) {
@@ -132,18 +142,20 @@ contract IcpdaoStaking is IIcpdaoStaking {
     external
     override
   {
-    EnumerableSet.AddressSet storage userTokenList = userStackInfo[msg.sender]
-    .tokens;
-
     for (uint256 index = 0; index < _removeTokenList.length; index++) {
       address token = _removeTokenList[index];
-      if (userTokenList.contains(token)) {
-        _mintAndBonusWithDrawAndRemoveStackWithToken(
-          token,
-          userStackInfo[msg.sender].amount
-        );
-        userTokenList.remove(token);
-      }
+      require(poolInfos[token].userPoolInfo[msg.sender].stake);
+    }
+
+    EnumerableSet.AddressSet storage userTokenList = userStackInfo[msg.sender]
+    .tokens;
+    for (uint256 index = 0; index < _removeTokenList.length; index++) {
+      address token = _removeTokenList[index];
+      _mintAndBonusWithDrawAndRemoveStackWithToken(
+        token,
+        userStackInfo[msg.sender].amount
+      );
+      userTokenList.remove(token);
     }
   }
 
@@ -180,30 +192,35 @@ contract IcpdaoStaking is IIcpdaoStaking {
     resultTokenList = _tokenList(user);
     resultAmountList = new uint256[](resultTokenList.length);
 
-    uint256 userAmount = userStackInfo[user].amount;
-
     for (uint256 index; index <= resultTokenList.length; index++) {
       address token = resultTokenList[index];
 
-      PoolInfo storage pool = poolInfos[address(token)];
+      PoolInfo storage pool = poolInfos[token];
 
-      uint256 unMintAmount = IERC20(token).balanceOf(address(this)) -
-        pool.blanceHaveMintAmount;
+      uint256 unMintAmount = _getUnMintAmount(token);
 
-      uint256 mockAccTokenPerShare;
+      uint256 mockAccTokenPerShare = pool.accTokenPerShare;
       if (unMintAmount > 0 && pool.userStakingIcpdaoAmount > 0) {
         uint256 preAdd = unMintAmount / pool.userStakingIcpdaoAmount;
         mockAccTokenPerShare = pool.accTokenPerShare + preAdd;
       }
 
       resultAmountList[index] =
-        userAmount *
+        userStackInfo[user].amount *
         mockAccTokenPerShare -
         pool.userPoolInfo[user].rewardDebt;
     }
   }
 
   function bonusWithdraw(address[] memory _token_list) external override {
+    uint256 userAmount = userStackInfo[msg.sender].amount;
+    require(userAmount > 0);
+
+    for (uint256 index = 0; index < _token_list.length; index++) {
+      address token = _token_list[index];
+      require(poolInfos[token].userPoolInfo[msg.sender].stake);
+    }
+
     for (uint256 index; index <= _token_list.length; index++) {
       address token = _token_list[index];
       // 更新挖矿
@@ -226,10 +243,9 @@ contract IcpdaoStaking is IIcpdaoStaking {
   }
 
   function _mintWithToken(address token) private {
-    PoolInfo storage pool = poolInfos[token];
-    uint256 unMintAmount = IERC20(token).balanceOf(address(this)) -
-      pool.blanceHaveMintAmount;
+    uint256 unMintAmount = _getUnMintAmount(token);
 
+    PoolInfo storage pool = poolInfos[token];
     if (unMintAmount > 0 && pool.userStakingIcpdaoAmount > 0) {
       uint256 preAdd = unMintAmount / pool.userStakingIcpdaoAmount;
       pool.accTokenPerShare = pool.accTokenPerShare + preAdd;
@@ -241,7 +257,6 @@ contract IcpdaoStaking is IIcpdaoStaking {
   }
 
   function _bonusWithdrawWithToken(address token) private {
-    // 如果用户已经有质押数量，先结算一下
     uint256 userAmount = userStackInfo[msg.sender].amount;
     if (userAmount > 0) {
       PoolInfo storage pool = poolInfos[token];
@@ -261,7 +276,7 @@ contract IcpdaoStaking is IIcpdaoStaking {
     require(userAmount > 0);
 
     PoolInfo storage pool = poolInfos[token];
-    require(poolInfos[token].userPoolInfo[msg.sender].stack == false);
+    require(poolInfos[token].userPoolInfo[msg.sender].stake == false);
 
     pool.userStakingIcpdaoAmount = pool.userStakingIcpdaoAmount + userAmount;
 
@@ -269,7 +284,7 @@ contract IcpdaoStaking is IIcpdaoStaking {
       pool.accTokenPerShare *
       userAmount;
 
-    pool.userPoolInfo[msg.sender].stack = true;
+    pool.userPoolInfo[msg.sender].stake = true;
   }
 
   function _removeUserStackAmountWithToken(address token, uint256 removeAmount)
@@ -284,6 +299,24 @@ contract IcpdaoStaking is IIcpdaoStaking {
     pool.userStakingIcpdaoAmount = pool.userStakingIcpdaoAmount - removeAmount;
     if (removeAmount == userAmount) {
       delete pool.userPoolInfo[msg.sender];
+    }
+  }
+
+  function _getUnMintAmount(address token)
+    private
+    view
+    returns (uint256 unMintAmount)
+  {
+    PoolInfo storage pool = poolInfos[token];
+    if (token == icpdaoToken) {
+      unMintAmount =
+        IERC20(token).balanceOf(address(this)) -
+        userStakingIcpdaoTotalAmount -
+        pool.blanceHaveMintAmount;
+    } else {
+      unMintAmount =
+        IERC20(token).balanceOf(address(this)) -
+        pool.blanceHaveMintAmount;
     }
   }
 }

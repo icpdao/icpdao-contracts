@@ -1,7 +1,14 @@
 import chai from 'chai'
 import { ethers } from 'hardhat';
-import {IcpdaoDaoToken, IcpdaoDaoToken__factory, IWETH9, HelloToken, HelloToken__factory} from '../src/types/index';
-import {BigNumber, BigNumberish, ContractFactory, Wallet} from "ethers";
+
+import {
+    IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
+    IcpdaoDaoToken, IcpdaoDaoToken__factory,
+    IWETH9,
+    HelloToken, HelloToken__factory
+} from '../src/types/index';
+
+import {BigNumber, ContractFactory, Wallet} from "ethers";
 import { Token, CurrencyAmount, Price} from '@uniswap/sdk-core'
 import { parseUnits } from '@ethersproject/units'
 import {abi as weth9Abi} from '../artifacts/contracts/test/interfaces/IWETH9.sol/IWETH9.json'
@@ -16,6 +23,8 @@ import { IUniswapV3Pool } from './mock/IUniswapV3Pool'
 
 import { abi as ISwapRouterABI } from '@uniswap/v3-periphery/artifacts/contracts/interfaces/ISwapRouter.sol/ISwapRouter.json';
 import { ISwapRouter } from './mock/ISwapRouter'
+
+import {abi as IcpdaoDaoTokenABI} from '../artifacts/contracts/IcpdaoDaoToken.sol/IcpdaoDaoToken.json'
 
 
 import {
@@ -163,6 +172,12 @@ describe("IcpdaoDaoToken", () => {
         swapRouter = (await ethers.getContractAt(ISwapRouterABI, swapRouterAddress)) as ISwapRouter;
     });
     it("create pool 1", async () => {
+        // deploy IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
+        const IcpdaoDaoTokenFactoryFactory: ContractFactory = new IcpdaoDaoTokenFactory__factory(deployAccount);
+        const icpdaoDaoTokenFactory = (await IcpdaoDaoTokenFactoryFactory.deploy(
+            stakingAddress
+        )) as IcpdaoDaoTokenFactory;
+
         // deploy helloToken
         const HelloTokenTokenFactory: ContractFactory = new HelloToken__factory(deployAccount);
         const helloToken = (await HelloTokenTokenFactory.deploy(
@@ -171,12 +186,10 @@ describe("IcpdaoDaoToken", () => {
 
         // deploy icpdaoDaoToken
         let tokenCount = BigNumber.from(10).pow(18).mul(10000);
-        const IcpdaoDaoTokenFactory: ContractFactory = new IcpdaoDaoToken__factory(deployAccount);
-        const icpdaoDaoToken = (await IcpdaoDaoTokenFactory.deploy(
+        await (await icpdaoDaoTokenFactory.deploy(
             [ownerAccount.address, user1Account.address, user2Account.address],
             [tokenCount, tokenCount, tokenCount],
             101,
-            stakingAddress,
             ownerAccount.address,
             {
                 p: 20,
@@ -187,9 +200,13 @@ describe("IcpdaoDaoToken", () => {
                 c: -1,
                 d: 0
             },
+            '1',
             "icp-token",
             "ICP"
-        )) as IcpdaoDaoToken;
+        )).wait();
+
+        const icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
+        const icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as IcpdaoDaoToken;
 
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
 
@@ -539,6 +556,111 @@ describe("IcpdaoDaoToken", () => {
         expect(ownerAccountHaveIcpAdd).to.equal(BigNumber.from("14999999999999"));
         expect(stakingHaveEthAdd).to.equal(BigNumber.from("1485000000000001"));
         expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1485000000000000"));
+
+    })
+
+    it("IcpdaoDaoTokenFactory redeploy", async () => {
+        // deploy IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
+        const IcpdaoDaoTokenFactoryFactory: ContractFactory = new IcpdaoDaoTokenFactory__factory(deployAccount);
+        const icpdaoDaoTokenFactory = (await IcpdaoDaoTokenFactoryFactory.deploy(
+            stakingAddress
+        )) as IcpdaoDaoTokenFactory;
+
+        // deploy icpdaoDaoToken
+        let tokenCount = BigNumber.from(10).pow(18).mul(10000);
+        await (await icpdaoDaoTokenFactory.connect(ownerAccount).deploy(
+            [ownerAccount.address, user1Account.address, user2Account.address],
+            [tokenCount, tokenCount, tokenCount],
+            101,
+            ownerAccount.address,
+            {
+                p: 20,
+                aNumerator: 1,
+                aDenominator: 2,
+                bNumerator: 1,
+                bDenominator: 365,
+                c: -1,
+                d: 0
+            },
+            '1',
+            "icp-token",
+            "ICP"
+        )).wait();
+
+        let icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
+        let icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as IcpdaoDaoToken;
+
+        expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
+
+        // redeploy
+        await expect(
+            icpdaoDaoTokenFactory.connect(user1Account).deploy(
+                [ownerAccount.address, user1Account.address, user2Account.address],
+                [tokenCount, tokenCount, tokenCount],
+                101,
+                user1Account.address,
+                {
+                    p: 20,
+                    aNumerator: 1,
+                    aDenominator: 2,
+                    bNumerator: 1,
+                    bDenominator: 365,
+                    c: -1,
+                    d: 0
+                },
+                '1',
+                "icp-token",
+                "ICP"
+            )
+        ).to.be.revertedWith('ICPDAO: NOT OWNER OR MANAGER DO REDEPLOY')
+
+        // owner redeploy
+        await (await icpdaoDaoTokenFactory.connect(ownerAccount).deploy(
+            [ownerAccount.address, user1Account.address, user2Account.address],
+            [tokenCount, tokenCount, tokenCount],
+            101,
+            ownerAccount.address,
+            {
+                p: 20,
+                aNumerator: 1,
+                aDenominator: 2,
+                bNumerator: 1,
+                bDenominator: 365,
+                c: -1,
+                d: 0
+            },
+            '1',
+            "icp-token",
+            "ICP"
+        )).wait();
+        icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
+        icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as IcpdaoDaoToken;
+        expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
+
+        await (await icpdaoDaoToken.addManager(user1Account.address)).wait();
+        await (await icpdaoDaoTokenFactory.connect(user1Account).deploy(
+            [ownerAccount.address, user1Account.address, user2Account.address],
+            [tokenCount, tokenCount, tokenCount],
+            101,
+            user1Account.address,
+            {
+                p: 20,
+                aNumerator: 1,
+                aDenominator: 2,
+                bNumerator: 1,
+                bDenominator: 365,
+                c: -1,
+                d: 0
+            },
+            '1',
+            "icp-token",
+            "ICP"
+        )).wait();
+        icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
+        icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as IcpdaoDaoToken;
+        expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
+
+
 
     })
 })
