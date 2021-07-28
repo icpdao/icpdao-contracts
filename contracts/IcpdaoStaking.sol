@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 contract IcpdaoStaking is IIcpdaoStaking {
   using EnumerableSet for EnumerableSet.AddressSet;
 
-  address public owner;
+  address private _owner;
   address public icpdaoToken;
   // 用户质押 ICPDAO 的总数量
   uint256 userStakingIcpdaoTotalAmount;
@@ -42,18 +42,18 @@ contract IcpdaoStaking is IIcpdaoStaking {
   // token address => pool info
   mapping(address => PoolInfo) poolInfos;
 
-  constructor(address _owner) {
-    owner = _owner;
+  modifier onlyOwner() {
+    require(msg.sender == _owner, "ICPDAO: NOT OWNER");
+    _;
   }
 
-  function setIcpdaoToken(address _icpdaoToken) external override {
-    require(msg.sender == owner);
+  constructor(address owner_) {
+    _owner = owner_;
+  }
+
+  function setIcpdaoToken(address _icpdaoToken) external override onlyOwner {
     require(icpdaoToken == address(0));
     icpdaoToken = _icpdaoToken;
-  }
-
-  function mint(address token) external override {
-    _mintWithToken(token);
   }
 
   function deposit(uint256 _amount, address[] calldata _addTokenList)
@@ -168,18 +168,6 @@ contract IcpdaoStaking is IIcpdaoStaking {
     return _tokenList(user);
   }
 
-  function _tokenList(address user)
-    private
-    view
-    returns (address[] memory result)
-  {
-    EnumerableSet.AddressSet storage userTokenList = userStackInfo[user].tokens;
-    result = new address[](userTokenList.length());
-    for (uint256 index; index < userTokenList.length(); index++) {
-      result[index] = userTokenList.at(index);
-    }
-  }
-
   function bonus(address user)
     external
     view
@@ -227,6 +215,27 @@ contract IcpdaoStaking is IIcpdaoStaking {
       _mintWithToken(token);
       // 结算手续费
       _bonusWithdrawWithToken(token);
+    }
+  }
+
+  function owner() external view override returns (address result) {
+    result = _owner;
+  }
+
+  function transferOwnership(address newOwner) external override onlyOwner {
+    require(newOwner != address(0));
+    _owner = newOwner;
+  }
+
+  function _tokenList(address user)
+    private
+    view
+    returns (address[] memory result)
+  {
+    EnumerableSet.AddressSet storage userTokenList = userStackInfo[user].tokens;
+    result = new address[](userTokenList.length());
+    for (uint256 index; index < userTokenList.length(); index++) {
+      result[index] = userTokenList.at(index);
     }
   }
 

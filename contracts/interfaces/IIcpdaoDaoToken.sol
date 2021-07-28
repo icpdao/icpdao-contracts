@@ -52,7 +52,7 @@ interface IIcpdaoDaoToken {
 
   function removeManager(address manager) external;
 
-  function isManager(address manager) external returns (bool);
+  function isManager(address manager) external view returns (bool);
 
   function owner() external view returns (address);
 

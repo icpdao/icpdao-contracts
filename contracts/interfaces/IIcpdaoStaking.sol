@@ -5,8 +5,6 @@ pragma abicoder v2;
 interface IIcpdaoStaking {
   function setIcpdaoToken(address _icpdaoToken) external;
 
-  function mint(address token) external;
-
   /// @notice 增加质押, 如果用户以前已经有质押，并且增加过分红 token 列表, 需要先结算一下分红，再增加
   /// @param _amount 质押 ICP 的数量
   /// @param _tokenList 提供的分红列表, 用户质押时可以进行删改
@@ -30,4 +28,8 @@ interface IIcpdaoStaking {
 
   /// @notice 提取自己在 _token_list 对应的 token 种类的分红
   function bonusWithdraw(address[] memory _token_list) external;
+
+  function owner() external view returns (address);
+
+  function transferOwnership(address newOwner) external;
 }

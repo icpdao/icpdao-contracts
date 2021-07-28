@@ -46,6 +46,19 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
   uint256 public mintLastTimestamp;
   uint256 public mintLastN;
 
+  modifier onlyOwner() {
+    require(_msgSender() == _owner, "ICPDAO: NOT OWNER");
+    _;
+  }
+
+  modifier onlyOwnerOrManager() {
+    require(
+      managers.contains(_msgSender()) || _msgSender() == _owner,
+      "NOT OWNER OR MANAGER"
+    );
+    _;
+  }
+
   constructor(
     address[] memory genesisTokenAddressList_,
     uint256[] memory genesisTokenAmountList_,
@@ -94,7 +107,7 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
     uint160 sqrtPriceX96,
     int24 tickLower,
     int24 tickUpper
-  ) external payable override {
+  ) external payable override onlyOwnerOrManager {
     require(_quoteTokenAddress != address(this));
     require(_quoteTokenAddress != address(0));
     require(_baseTokenAmount != 0);
@@ -158,7 +171,11 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
     }
   }
 
-  function updateLPPool(uint256 _baseTokenAmount) external override {
+  function updateLPPool(uint256 _baseTokenAmount)
+    external
+    override
+    onlyOwnerOrManager
+  {
     require(lpPool != address(0));
     require(_baseTokenAmount <= balanceOf(address(this)));
 
@@ -198,7 +215,7 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
     uint256 _endTimestamp,
     int24 tickLower,
     int24 tickUpper
-  ) external override {
+  ) external override onlyOwnerOrManager {
     console.log("mint", mintLastTimestamp, _endTimestamp, block.timestamp);
     require(_mintTokenAddressList.length == _mintTokenAmountRatioList.length);
     require(_endTimestamp <= block.timestamp);
@@ -263,12 +280,12 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
     _bonusWithdrawByTokenIdList(tokenIdList);
   }
 
-  function addManager(address manager) external override {
+  function addManager(address manager) external override onlyOwner {
     require(!managers.contains(manager));
     managers.add(manager);
   }
 
-  function removeManager(address manager) external override {
+  function removeManager(address manager) external override onlyOwner {
     require(managers.contains(manager));
     managers.remove(manager);
   }
@@ -286,9 +303,8 @@ contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
     result = _owner;
   }
 
-  function transferOwnership(address newOwner) external override {
+  function transferOwnership(address newOwner) external override onlyOwner {
     require(newOwner != address(0));
-    require(msg.sender == _owner);
     _owner = newOwner;
   }
 
