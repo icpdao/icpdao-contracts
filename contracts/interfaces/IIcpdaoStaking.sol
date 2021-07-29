@@ -33,6 +33,20 @@ interface IIcpdaoStaking {
 
   function transferOwnership(address newOwner) external;
 
+  function userStakeInfo(address user)
+    external
+    view
+    returns (uint256 amount, address[] memory tokens);
+
+  function poolInfo(address token)
+    external
+    view
+    returns (
+      uint256 accTokenPerShare,
+      uint256 userStakingIcpdaoAmount,
+      uint256 blanceHaveMintAmount
+    );
+
   event SetIcpdaoToken(address _icpdaoToken);
   event Deposit(address indexed user, uint256 _amount, address[] _tokenList);
   event Withdraw(address indexed user, uint256 _amount);
