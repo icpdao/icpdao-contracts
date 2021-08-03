@@ -1,7 +1,7 @@
 import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
-import "uniswap-v3-deploy-plugin"
+import 'hardhat-deploy'
 
 // // This is a sample Hardhat task. To learn how to create your own go to
 // // https://hardhat.org/guides/create-task.html
@@ -38,12 +38,22 @@ module.exports = {
     outDir: 'src/types',
     target: 'ethers-v5'
   },
+  namedAccounts: {
+    deployer: 0,
+  },
+  etherscan: {
+    apiKey: 'VCSGXU48FJ5GJ5D6SVPDC44J8ZQ3YVI63W'
+  },
   networks: {
     hardhat: {
       forking: {
         url: "https://eth-mainnet.alchemyapi.io/v2/IsvyJHT2uPB-J5CkSDaTQsxJsrM4KVAv",
         blockNumber: 12811541
       }
+    },
+    ropsten: {
+      url: `https://eth-ropsten.alchemyapi.io/v2/IsvyJHT2uPB-J5CkSDaTQsxJsrM4KVAv`,
+      accounts: ['0x189a98f135f1a692d6d9925a10173e6e36c301c43a7825ace2ec07fb32ffe809']
     }
   },
 };
