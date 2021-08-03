@@ -74,4 +74,6 @@ interface INonfungiblePositionManager {
     external
     payable
     returns (uint256 amount0, uint256 amount1);
+
+  function WETH9() external view returns (address);
 }

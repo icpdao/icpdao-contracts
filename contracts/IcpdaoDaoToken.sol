@@ -3,7 +3,7 @@ pragma solidity ^0.8.4;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+// import "@openzeppelin/contracts/access/Ownable.sol";
 
 // import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 
@@ -14,24 +14,21 @@ import "hardhat/console.sol";
 
 import "./interfaces/IIcpdaoDaoToken.sol";
 import "./libraries/TransferHelper.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
+contract IcpdaoDaoToken is ERC20, IIcpdaoDaoToken {
+  using EnumerableSet for EnumerableSet.AddressSet;
+
+  EnumerableSet.AddressSet managers;
+
+  address private _owner;
+
   uint256 public lpRatio;
 
   address public stakingAddress;
 
   // TODO 挖矿公式数据上限导致代币溢出，所以参数的数据类型不能太大
-  struct MiningArg {
-    int128 p;
-    int16 aNumerator;
-    int16 aDenominator;
-    int16 bNumerator;
-    int16 bDenominator;
-    int16 c;
-    int16 d;
-  }
-
-  MiningArg public miningArg;
+  IIcpdaoDaoToken.MiningArg public miningArg;
 
   address public lpPool;
 
@@ -43,13 +40,24 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
   INonfungiblePositionManager private _nonfungiblePositionManager =
     INonfungiblePositionManager(_nonfungiblePositionManagerAddress);
 
-  address private _weth9 = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-
   mapping(uint24 => int24) tickLowerMap;
   mapping(uint24 => int24) tickUpperMap;
 
   uint256 public mintLastTimestamp;
   uint256 public mintLastN;
+
+  modifier onlyOwner() {
+    require(_msgSender() == _owner, "ICPDAO: NOT OWNER");
+    _;
+  }
+
+  modifier onlyOwnerOrManager() {
+    require(
+      managers.contains(_msgSender()) || _msgSender() == _owner,
+      "NOT OWNER OR MANAGER"
+    );
+    _;
+  }
 
   constructor(
     address[] memory genesisTokenAddressList_,
@@ -57,7 +65,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
     uint256 lpRatio_,
     address stakingAddress_,
     address ownerAddress_,
-    MiningArg memory miningArg_,
+    IIcpdaoDaoToken.MiningArg memory miningArg_,
     string memory erc20Name_,
     string memory erc20Symbol_
   ) ERC20(erc20Name_, erc20Symbol_) {
@@ -73,7 +81,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
 
     lpRatio = lpRatio_;
     stakingAddress = stakingAddress_;
-    transferOwnership(ownerAddress_);
+    _owner = ownerAddress_;
 
     miningArg = miningArg_;
 
@@ -99,7 +107,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
     uint160 sqrtPriceX96,
     int24 tickLower,
     int24 tickUpper
-  ) external payable override {
+  ) external payable override onlyOwnerOrManager {
     require(_quoteTokenAddress != address(this));
     require(_quoteTokenAddress != address(0));
     require(_baseTokenAmount != 0);
@@ -111,7 +119,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
       type(uint256).max
     );
 
-    if (_quoteTokenAddress != _weth9) {
+    if (_quoteTokenAddress != _nonfungiblePositionManager.WETH9()) {
       TransferHelper.safeApprove(
         _quoteTokenAddress,
         _nonfungiblePositionManagerAddress,
@@ -147,7 +155,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
 
     _nonfungiblePositionManager.mint{ value: msg.value }(params);
 
-    if (_quoteTokenAddress == _weth9) {
+    if (_quoteTokenAddress == _nonfungiblePositionManager.WETH9()) {
       _nonfungiblePositionManager.refundETH();
       if (address(this).balance > 0) {
         TransferHelper.safeTransferETH(msg.sender, address(this).balance);
@@ -161,9 +169,23 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
         );
       }
     }
+
+    emit CreateLPPool(
+      _baseTokenAmount,
+      _quoteTokenAddress,
+      _quoteTokenAmount,
+      fee,
+      sqrtPriceX96,
+      tickLower,
+      tickUpper
+    );
   }
 
-  function updateLPPool(uint256 _baseTokenAmount) external override {
+  function updateLPPool(uint256 _baseTokenAmount)
+    external
+    override
+    onlyOwnerOrManager
+  {
     require(lpPool != address(0));
     require(_baseTokenAmount <= balanceOf(address(this)));
 
@@ -195,6 +217,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
       params
     );
     console.log("amount0 amount1", amount0, amount1);
+    emit UpdateLPPool(_baseTokenAmount);
   }
 
   function mint(
@@ -203,7 +226,7 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
     uint256 _endTimestamp,
     int24 tickLower,
     int24 tickUpper
-  ) external override {
+  ) external override onlyOwnerOrManager {
     console.log("mint", mintLastTimestamp, _endTimestamp, block.timestamp);
     require(_mintTokenAddressList.length == _mintTokenAmountRatioList.length);
     require(_endTimestamp <= block.timestamp);
@@ -242,6 +265,14 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
     if (lpPool != address(0)) {
       mintToLP(lpMintValue, tickLower, tickUpper);
     }
+
+    emit Mint(
+      _mintTokenAddressList,
+      _mintTokenAmountRatioList,
+      _endTimestamp,
+      tickLower,
+      tickUpper
+    );
   }
 
   function bonusWithdraw() external override {
@@ -263,10 +294,43 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
   {
     for (uint256 index = 0; index < tokenIdList.length; index++) {
       uint256 tokenId = tokenIdList[index];
-      address owner = _nonfungiblePositionManager.ownerOf(tokenId);
-      require(owner == msg.sender);
+      require(_nonfungiblePositionManager.ownerOf(tokenId) == msg.sender);
     }
     _bonusWithdrawByTokenIdList(tokenIdList);
+  }
+
+  function addManager(address manager) external override onlyOwner {
+    require(!managers.contains(manager));
+    managers.add(manager);
+
+    emit AddManager(manager);
+  }
+
+  function removeManager(address manager) external override onlyOwner {
+    require(managers.contains(manager));
+    managers.remove(manager);
+
+    emit RemoveManager(manager);
+  }
+
+  function isManager(address manager)
+    external
+    view
+    override
+    returns (bool result)
+  {
+    result = managers.contains(manager);
+  }
+
+  function owner() external view override returns (address result) {
+    result = _owner;
+  }
+
+  function transferOwnership(address newOwner) external override onlyOwner {
+    require(newOwner != address(0));
+    _owner = newOwner;
+
+    emit TransferOwnership(newOwner);
   }
 
   function _bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) private {
@@ -312,6 +376,13 @@ contract IcpdaoDaoToken is ERC20, Ownable, IIcpdaoDaoToken {
       );
       TransferHelper.safeTransfer(lpToken1, msg.sender, bonusToken1TotalAmount);
     }
+
+    emit BonusWithdrawByTokenIdList(
+      msg.sender,
+      tokenIdList,
+      token0TotalAmount,
+      token1TotalAmount
+    );
   }
 
   function _bonusWithdrawByTokenId(uint256 tokenId)
