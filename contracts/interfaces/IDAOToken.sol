@@ -47,6 +47,7 @@ interface IDAOToken is
     function lpPool() external returns (address);
     function UNISWAP_V3_POSITIONS() external returns (address);
     function WETH9() external returns (address);
+    function destruct() external;
 
     function createLPPool(
         uint256 _baseTokenAmount,

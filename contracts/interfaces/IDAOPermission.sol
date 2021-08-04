@@ -11,7 +11,7 @@ interface IDAOPermission {
         view
         returns (address);
 
-    function transferOwnership(address _newOwner) external;
+    function transferOwnership(address payable _newOwner) external;
 
     function managers()
         external

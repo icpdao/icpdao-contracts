@@ -17,6 +17,25 @@ interface IDAOStaking {
     event RemoveTokenList(address indexed user, address[] tokenList);
     
 
+    function totalStaking() external returns (uint256);
+    function ICPD() external returns (address);
+    function destruct() external;
+
+    function userInfo(address _user) external returns (
+        uint256 amount,
+        address[] memory tokens
+    );
+
+    function userRewardDebt(
+        address _user, address _token
+    ) external returns (uint256 rewardDebt);
+
+    function rewardToken(address _token) external returns (
+        uint256 amount,
+        uint256 lastRewardBlock,
+        uint256 accPerShare
+    );
+
     function setICPToken(
         address _ICP
     ) external;

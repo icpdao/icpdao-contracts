@@ -23,7 +23,7 @@ contract DAOToken is IDAOToken, ERC20 {
     using UniswapMath for INonfungiblePositionManager;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    address private _owner;
+    address payable _owner;
     EnumerableSet.AddressSet private _managers;
     address private immutable _WETH9;
 
@@ -56,7 +56,7 @@ contract DAOToken is IDAOToken, ERC20 {
         uint256[] memory _genesisTokenAmountList,
         uint256 _lpRatio,
         address _stakingAddress,
-        address _ownerAddress,
+        address payable _ownerAddress,
         MintMath.MintArgs memory _mintArgs,
         string memory _erc20Name,
         string memory _erc20Symbol
@@ -80,9 +80,13 @@ contract DAOToken is IDAOToken, ERC20 {
         return _owner;
     }
 
-    function transferOwnership(address _newOwner) external override onlyOwner {
+    function transferOwnership(address payable _newOwner) external override onlyOwner {
         _owner = _newOwner;
         emit TransferOwnership(_newOwner);
+    }
+
+    function destruct() external override onlyOwner {
+        selfdestruct(_owner);
     }
 
     function managers() external view override returns (address[] memory) {
@@ -122,6 +126,7 @@ contract DAOToken is IDAOToken, ERC20 {
         int24 _tickUpper,
         uint160 _sqrtPriceX96
     ) external payable override onlyOwner {
+        // TODO(@fushang318) support exists pool add lp.
         require(_baseTokenAmount > 0, "ICPDAO: BASE TOKEN AMOUNT MUST > 0");
         require(_quoteTokenAmount > 0, "ICPDAO: QUOTE TOKEN AMOUNT MUST > 0");
         require(_baseTokenAmount <= _temporaryAmount, "ICPDAO: NOT ENOUGH TEMPORARYAMOUNT");
