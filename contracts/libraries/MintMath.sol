@@ -4,8 +4,18 @@ import "hardhat/console.sol";
 
 library MintMath {
 
+    struct MintArgs {
+        uint128 p;
+        uint16 aNumerator;
+        uint16 aDenominator;
+        uint16 bNumerator;
+        uint16 bDenominator;
+        uint16 c;
+        uint16 d;
+    }
+
     struct Anchor {
-        uint256[7] args;
+        MintArgs args;
         uint256 lastTimestamp;
         uint256 n;
     }
@@ -106,11 +116,11 @@ library MintMath {
 
     function initialize(
         Anchor storage last,
-        uint256[7] memory args,
+        MintArgs memory args,
         uint256 time
     ) internal {
         last.args = args;
-        last.lastTimestamp = time;
+        last.lastTimestamp = time / 86400 * 86400;
         last.n = 0;
     }
 
@@ -118,16 +128,16 @@ library MintMath {
         Anchor storage last,
         uint256 endTimestamp
     ) internal returns (uint256) {
-        uint256 d = last.args[6];
-        uint256 p = last.args[0];
-        uint256 an = last.args[1];
-        uint256 ad = last.args[2];
-        uint256 bn = last.args[3];
-        uint256 bd = last.args[4];
-        uint256 c = last.args[5];
+        uint256 d = last.args.d;
+        uint256 p = last.args.p;
+        uint256 an = last.args.aNumerator;
+        uint256 ad = last.args.aDenominator;
+        uint256 bn = last.args.bNumerator;
+        uint256 bd = last.args.bDenominator;
+        uint256 c = last.args.c;
 
         uint256 beginN = last.n + 1;
-        uint256 n = last.n + (endTimestamp - last.lastTimestamp) / 86400;
+        uint256 n = last.n + (endTimestamp / 86400 * 86400 - last.lastTimestamp) / 86400;
 
         uint256 result;
         uint256 lastCoefficient;

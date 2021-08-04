@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0+
 pragma solidity >=0.8.4;
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/external/INonfungiblePositionManager.sol";
 
 import "hardhat/console.sol";
@@ -24,27 +24,38 @@ library UniswapMath {
         else if (fee == 10000) return -tick10000; 
     }
 
-    // function createDAOTokenPool(
-    //     INonfungiblePositionManager inpm,
-    //     uint256 _baseTokenAmount,
-    //     address _quoteTokenAddress,
-    //     uint256 _quoteTokenAmount,
-    //     uint24 _fee,
-    //     int24 _tickLower,
-    //     int24 _tickUpper,
-    //     uint160 _sqrtPriceX96
-    // ) internal returns(address lpPool, address lpToken0, address lpToken1) {
-    //     INonfungiblePositionManager.MintParams memory params = buildMintParams(
-    //         _baseTokenAmount, _quoteTokenAddress, _quoteTokenAmount,
-    //         _fee, _tickLower, _tickUpper
-    //     );
+    function createDAOTokenPool(
+        INonfungiblePositionManager inpm,
+        uint256 _baseTokenAmount,
+        address _quoteTokenAddress,
+        uint256 _quoteTokenAmount,
+        uint24 _fee,
+        int24 _tickLower,
+        int24 _tickUpper,
+        uint160 _sqrtPriceX96,
+        uint256 _value
+    ) internal returns(address lpPool, address lpToken0, address lpToken1) {
+        INonfungiblePositionManager.MintParams memory params = buildMintParams(
+            _baseTokenAmount,
+            _quoteTokenAddress,
+            _quoteTokenAmount,
+            _fee,
+            _tickLower,
+            _tickUpper
+        );
 
-    //     lpPool = inpm.createAndInitializePoolIfNecessary(params.token0, params.token1, _fee, _sqrtPriceX96);
+        lpToken0 = params.token0;
+        lpToken1 = params.token1;
 
-    //     lpToken0 = params.token0;
-    //     lpToken1 = params.token1;
-    //     inpm.mint{value: msg.value}(params);
-    // }
+        lpPool = inpm.createAndInitializePoolIfNecessary(
+            params.token0,
+            params.token1,
+            _fee,
+            _sqrtPriceX96
+        );
+
+        inpm.mint{ value: _value }(params);
+    }
 
     function buildMintParams(
         uint256 _baseTokenAmount,
@@ -140,28 +151,6 @@ library UniswapMath {
         tickLower = getLowerTick(fee) + tickSpacing * bei;
     }
 
-    function mintToLP(
-        INonfungiblePositionManager inpm,
-        address lpPool,
-        uint256 lpMintValue
-    ) internal {
-        (address quoteTokenAddress, uint24 fee, int24 tickLower, int24 tickUpper) = getNearestSingleMintParams(lpPool);
-
-        INonfungiblePositionManager.MintParams memory params = buildMintParams(
-            lpMintValue, quoteTokenAddress, 0, fee, tickLower, tickUpper);
-
-        // TODO 目前的实现并不能精确的把 _baseTokenAmount 完全放入进去
-        // 原因如下
-        // 即使是单币放入 pool.mint 方法也会 根据 tickLower 和 tickUpper 计算实际放入的 token 数量
-        // 如果 tickLower 和 tickUpper 边界距离 currentTick 太近
-        // 实际放入的 token 数量 会比 _baseTokenAmount 稍微少一些
-        // 但是如果 tickLower 和 tickUpper 边界距离 currentTick 太远，对我们的逻辑有害处
-        // 实际放入的 token 数量的具体计算还没有搞懂
-        params.amount0Min = 0;
-        (, , uint256 amount0, uint256 amount1) = inpm.mint(params);
-        console.log(amount0, amount1);
-    }
-
     function mintToLPByTick(
         INonfungiblePositionManager inpm,
         address lpPool,
@@ -175,18 +164,37 @@ library UniswapMath {
         INonfungiblePositionManager.MintParams memory params = buildMintParams(
             lpMintValue, quoteTokenAddress, 0, fee, tickLower, tickUpper);
         // TODO 目前的实现并不能精确的把 _baseTokenAmount 完全放入进去
-        // 原因如下
-        // 即使是单币放入 pool.mint 方法也会 根据 tickLower 和 tickUpper 计算实际放入的 token 数量
-        // 如果 tickLower 和 tickUpper 边界距离 currentTick 太近
-        // 实际放入的 token 数量 会比 _baseTokenAmount 稍微少一些
-        // 但是如果 tickLower 和 tickUpper 边界距离 currentTick 太远，对我们的逻辑有害处
-        // 实际放入的 token 数量的具体计算还没有搞懂
         params.amount0Min = 0;
-        console.log(params.token0, params.token1, params.fee);
-        // console.log(params.tickLower, params.tickUpper);
-        console.log(params.amount0Desired, params.amount1Desired, params.amount0Min);
-        console.log(params.amount1Min, params.recipient, params.deadline);
         (, , amount0, amount1) = inpm.mint(params);
-        console.log(amount0, amount1);
+    }
+
+
+    function bonusWithdrawByTokenId(
+        INonfungiblePositionManager inpm,
+        uint256 tokenId,
+        address _lpToken0,
+        address _lpToken1
+    )
+        internal
+        returns (uint256 token0Add, uint256 token1Add)
+    {
+        ( , , address token0, address token1, , , , , , , , ) = inpm.positions(tokenId);
+
+        if (_lpToken0 != token0 || _lpToken1 != token1) {
+            token0Add = 0;
+            token1Add = 0;
+        } else {
+            INonfungiblePositionManager.CollectParams memory bonusParams = INonfungiblePositionManager.CollectParams({
+                tokenId: tokenId,
+                recipient: address(this),
+                amount0Max: type(uint128).max,
+                amount1Max: type(uint128).max
+            });
+            uint256 token0Before = IERC20(token0).balanceOf(address(this));
+            uint256 token1Before = IERC20(token1).balanceOf(address(this));
+            inpm.collect(bonusParams);
+            token0Add = IERC20(token0).balanceOf(address(this)) - token0Before;
+            token1Add = IERC20(token1).balanceOf(address(this)) - token1Before;
+        }
     }
 }

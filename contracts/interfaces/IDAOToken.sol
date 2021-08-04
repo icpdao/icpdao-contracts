@@ -9,6 +9,45 @@ interface IDAOToken is
     IDAOEvents
 {
 
+    event CreateLPPool(
+        uint256 _baseTokenAmount,
+        address _quoteTokenAddress,
+        uint256 _quoteTokenAmount,
+        uint24 _fee,
+        uint160 _sqrtPriceX96,
+        int24 _tickLower,
+        int24 _tickUpper
+    );
+
+    event UpdateLPPool(uint256 _baseTokenAmount);
+
+    event Mint(
+        address[] _mintTokenAddressList,
+        uint24[] _mintTokenAmountRatioList,
+        uint256 _endTimestamp,
+        int24 _tickLower,
+        int24 _tickUpper
+    );
+
+    event BonusWithdrawByTokenIdList(
+        address indexed operator,
+        uint256[] tokenIdList,
+        uint256 token0TotalAmount,
+        uint256 token1TotalAmount
+    );
+
+    event AddManager(address _manager);
+    event RemoveManager(address _manager);
+    event TransferOwnership(address _newOwner);
+
+    function staking() external returns (address);
+    function lpRatio() external returns (uint256);
+    function lpToken0() external returns (address);
+    function lpToken1() external returns (address);
+    function lpPool() external returns (address);
+    function UNISWAP_V3_POSITIONS() external returns (address);
+    function WETH9() external returns (address);
+
     function createLPPool(
         uint256 _baseTokenAmount,
         address _quoteTokenAddress,
@@ -20,15 +59,17 @@ interface IDAOToken is
     ) external payable;
 
     function updateLPPool(
-        uint256 _baseTokenAmount
+        uint256 _baseTokenAmount,
+        int24 _tickLower,
+        int24 _tickUpper
     ) external;
 
     function mint(
         address[] memory _mintTokenAddressList,
-        uint256[] memory _mintTokenAmountList,
+        uint24[] memory _mintTokenAmountRatioList,
         uint256 _endTimestamp,
-        int24 tickLower,
-        int24 tickUpper
+        int24 _tickLower,
+        int24 _tickUpper
     ) external;
 
     function bonusWithdraw() external;
