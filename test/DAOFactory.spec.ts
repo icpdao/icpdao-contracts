@@ -12,18 +12,27 @@ describe("DAOFactory", async () => {
         const erc20Mock = await ethers.getContractFactory('ERC20Mock');
         mockStaking = (await erc20Mock.deploy([w1.address, w2.address, w3.address], [100, 100, 100], "Mock", "MOCK")) as ERC20Mock;
         const daoFactory_ = await ethers.getContractFactory('DAOFactory');
-        daoFactory = (await daoFactory_.deploy(mockStaking.address)) as DAOFactory;
+        daoFactory = (await daoFactory_.deploy(w1.address, mockStaking.address)) as DAOFactory;
     })
 
     it("create one dao && re deploy", async () => {
         const [w1, w2, w3, w4, w5, w6] = await ethers.getSigners();
         const doDeploy = await daoFactory.connect(w2).deploy(
+            "mock_dao_id_1",
             [w1.address, w2.address, w3.address, w4.address, w5.address, w6.address],
             [100, 100, 100, 100, 100, 100],
             50,
             w1.address,
-            [90, 1, 3, 1, 30, 0, 0],
-            "mock_dao_id_1",
+            {
+                p: 90,
+                aNumerator: 1,
+                aDenominator: 3,
+                bNumerator: 1,
+                bDenominator: 30,
+                c: 0,
+                d: 0
+            },
+            // [90, 1, 3, 1, 30, 0, 0],
             "MockDAO1",
             "MD1"
         );
@@ -31,18 +40,27 @@ describe("DAOFactory", async () => {
 
         try {
             const reDeploy = await daoFactory.connect(w2).deploy(
+                "mock_dao_id_1",
                 [w1.address, w2.address, w3.address, w4.address, w5.address, w6.address],
                 [100, 100, 100, 100, 100, 100],
                 50,
                 w1.address,
-                [90, 1, 3, 1, 30, 0, 0],
-                "mock_dao_id_1",
+                // [90, 1, 3, 1, 30, 0, 0],
+                {
+                    p: 90,
+                    aNumerator: 1,
+                    aDenominator: 3,
+                    bNumerator: 1,
+                    bDenominator: 30,
+                    c: 0,
+                    d: 0
+                },
                 "MockDAO1",
                 "MD1"
             );
             expect(1).to.be.equal(2);
         } catch (e) {
-            expect(e.message).to.be.contain("ICPDAO: NOT OWNER OR MANAGER DO REDEPLOY");
+            expect(e.message).to.be.contain("ICPDAO: NOT OWNER DO REDEPLOY");
         }
         let newToken = await ethers.getContractAt(
             IDAOTokenABI,
@@ -51,13 +69,22 @@ describe("DAOFactory", async () => {
         await newToken.connect(w1).addManager(w2.address);
         expect(await newToken.isManager(w2.address)).to.be.true;
         expect(await newToken.isManager(w3.address)).to.be.false;
-        const reDeploy = await daoFactory.connect(w2).deploy(
+        const reDeploy = await daoFactory.connect(w1).deploy(
+            "mock_dao_id_1",
             [w1.address, w2.address, w3.address, w4.address, w5.address, w6.address],
             [100, 100, 100, 100, 100, 100],
             50,
             w1.address,
-            [90, 1, 3, 1, 30, 0, 0],
-            "mock_dao_id_1",
+            // [90, 1, 3, 1, 30, 0, 0],
+            {
+                p: 90,
+                aNumerator: 1,
+                aDenominator: 3,
+                bNumerator: 1,
+                bDenominator: 30,
+                c: 0,
+                d: 0
+            },
             "MockDAO1",
             "MD1"
         );

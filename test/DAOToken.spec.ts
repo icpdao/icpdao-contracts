@@ -1,27 +1,39 @@
-import {expect} from 'chai';
+import chai from 'chai'
+import { ethers } from 'hardhat';
 
-import { ethers, network } from 'hardhat';
-import { 
-    DAOToken, DAOToken__factory, IWETH9, ERC20Mock, ERC20Mock__factory, 
-    IUniswapV3Pool, INonfungiblePositionManager, ISwapRouter
-} from '../typechain';
-import {BigNumber, ContractFactory, Wallet} from "ethers";
-import { Token, CurrencyAmount, Price} from '@uniswap/sdk-core';
-import { parseUnits } from '@ethersproject/units';
-import { abi as weth9Abi } from '@uniswap/v3-periphery/artifacts/contracts/interfaces/external/IWETH9.sol/IWETH9.json';
-
-import JSBI from 'jsbi'
 import {
-    FeeAmount, Position, TICK_SPACINGS, Pool, priceToClosestTick, TickMath, nearestUsableTick,
-} from '@uniswap/v3-sdk'
+    DAOToken, DAOToken__factory, IWETH9, ERC20Mock, ERC20Mock__factory,
+    DAOFactory,
+    IUniswapV3Pool, INonfungiblePositionManager, ISwapRouter, DAOFactory__factory
+} from '../typechain/index';
+
+import {BigNumber, ContractFactory, Wallet} from "ethers";
+import { Token, CurrencyAmount, Price} from '@uniswap/sdk-core'
+import { parseUnits } from '@ethersproject/units'
+import { abi as weth9Abi } from '@uniswap/v3-periphery/artifacts/contracts/interfaces/external/IWETH9.sol/IWETH9.json';
+import JSBI from 'jsbi'
+import {FeeAmount, Position, TICK_SPACINGS} from '@uniswap/v3-sdk'
 
 import { abi as nonfungiblePositionManagerABI } from '@uniswap/v3-periphery/artifacts/contracts/interfaces/INonfungiblePositionManager.sol/INonfungiblePositionManager.json'
+
 import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json';
+
 import { abi as ISwapRouterABI } from '@uniswap/v3-periphery/artifacts/contracts/interfaces/ISwapRouter.sol/ISwapRouter.json';
 
+import {abi as IcpdaoDaoTokenABI} from '../artifacts/contracts/DAOToken.sol/DAOToken.json'
+
+
+import {
+    Pool,
+    priceToClosestTick,
+    TickMath,
+    nearestUsableTick,
+} from '@uniswap/v3-sdk';
 
 import {getMaxTick, getMinTick} from "./shared/uniswapTicks";
 import {MaxUint128} from "./shared/constants";
+
+const { expect } = chai
 
 
 const getTickSpacings = (fee: number) => {
@@ -46,17 +58,7 @@ const getNearestTickUpper = (tick: number, fee: number, tickSpacing: number) => 
     return getMinTick(tickSpacing) + tickSpacing * bei;
 }
 
-const getCreatePoolAndPosition = (
-    feeAmount: FeeAmount,
-    baseTokenAddress: string,
-    quoteTokenAddress: string,
-    baseTokenDecimals: number,
-    quoteTokenDecimals: number,
-    radioTokenAddress: string,
-    radioValue: string,
-    independentTokenAddress: string,
-    independentTokenValue: string
-) => {
+const getCreatePoolAndPosition = (feeAmount: FeeAmount, baseTokenAddress: string, quoteTokenAddress: string, baseTokenDecimals: number, quoteTokenDecimals: number, radioTokenAddress: string, radioValue: string, independentTokenAddress: string, independentTokenValue: string) => {
     let baseToken = new Token(1, baseTokenAddress, baseTokenDecimals);
     let quoteToken = new Token(1, quoteTokenAddress, quoteTokenDecimals);
     let tokenA;
@@ -130,7 +132,7 @@ const getCreatePoolAndPosition = (
     return [mockPool, position];
 }
 
-describe("DAOToken", () => {
+describe("IcpdaoDaoToken", () => {
     let nonfungiblePositionManagerAddress: string
     let weth9Address: string
     let swapRouterAddress: string
@@ -140,6 +142,7 @@ describe("DAOToken", () => {
     let user1Account: Wallet
     let user2Account: Wallet
     let user3Account: Wallet
+    let user4Account: Wallet
     let stakingAddress: string
     let weth9: IWETH9
     let gasPrice: BigNumber
@@ -159,33 +162,47 @@ describe("DAOToken", () => {
         user1Account = wallets[2];
         user2Account = wallets[3];
         user3Account = wallets[4];
-        stakingAddress = wallets[5].address;
+        user4Account = wallets[5];
+        stakingAddress = wallets[6].address;
         gasPrice = BigNumber.from(10).pow(9).mul(20);
         weth9 = (await ethers.getContractAt(weth9Abi, weth9Address)) as IWETH9
         nonfungiblePositionManager = (await ethers.getContractAt(nonfungiblePositionManagerABI, nonfungiblePositionManagerAddress)) as INonfungiblePositionManager;
         swapRouter = (await ethers.getContractAt(ISwapRouterABI, swapRouterAddress)) as ISwapRouter;
-
     });
     it("create pool 1", async () => {
+        // deploy IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
+        const DaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
+        const daoTokenFactory = (await DaoTokenFactoryFactory.deploy(
+            deployAccount.address, stakingAddress
+        )) as DAOFactory;
         // deploy helloToken
-        const HelloTokenTokenFactory: ContractFactory = new ERC20Mock__factory(deployAccount);
-        const helloToken = (await HelloTokenTokenFactory.deploy(
+        const ERC20MockFactory: ContractFactory = new ERC20Mock__factory(deployAccount);
+        const helloToken = (await ERC20MockFactory.deploy(
             [deployAccount.address], [BigNumber.from(10).pow(18 * 2)], "mockERC1", "MERC1"
         )) as ERC20Mock;
 
         // deploy icpdaoDaoToken
         let tokenCount = BigNumber.from(10).pow(18).mul(10000);
-        const IcpdaoDaoTokenFactory: ContractFactory = new DAOToken__factory(deployAccount);
-        const icpdaoDaoToken = (await IcpdaoDaoTokenFactory.deploy(
+        await (await daoTokenFactory.deploy(
+            '1',
             [ownerAccount.address, user1Account.address, user2Account.address],
             [tokenCount, tokenCount, tokenCount],
             101,
-            stakingAddress,
             ownerAccount.address,
-            [20, 1, 2, 1, 365, 0, 0],
+            {
+                p: 20,
+                aNumerator: 1,
+                aDenominator: 2,
+                bNumerator: 1,
+                bDenominator: 365,
+                c: 0,
+                d: 0
+            },
             "icp-token",
             "ICP"
-        )) as DAOToken;
+        )).wait();
+        const icpdaoDaoTokenAddress = await daoTokenFactory.tokens('1')
+        const icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
 
@@ -213,12 +230,12 @@ describe("DAOToken", () => {
             quoteTokenAmount = (position as Position).mintAmounts.amount0.toString()
         }
 
-        console.log("(position as Position).amount0.currency.address == icpdaoDaoToken.address", (position as Position).amount0.currency.address == icpdaoDaoToken.address)
-        console.log("position amount0", (position as Position).mintAmounts.amount0.toString());
-        console.log("position amount1", (position as Position).mintAmounts.amount1.toString());
-        console.log("pool.sqrtRatioX96", (mockPool as Pool).sqrtRatioX96.toString());
-        console.log("baseTokenAmount", baseTokenAmount)
-        console.log("quoteTokenAmount", quoteTokenAmount)
+        // console.log("(position as Position).amount0.currency.address == icpdaoDaoToken.address", (position as Position).amount0.currency.address == icpdaoDaoToken.address)
+        // console.log("position amount0", (position as Position).mintAmounts.amount0.toString());
+        // console.log("position amount1", (position as Position).mintAmounts.amount1.toString());
+        // console.log("pool.sqrtRatioX96", (mockPool as Pool).sqrtRatioX96.toString());
+        // console.log("baseTokenAmount", baseTokenAmount)
+        // console.log("quoteTokenAmount", quoteTokenAmount)
 
         expect(await helloToken.balanceOf(ownerAccount.address)).eq(0);
         expect(await helloToken.balanceOf(icpdaoDaoToken.address)).eq(0);
@@ -239,8 +256,18 @@ describe("DAOToken", () => {
         expect(await icpdaoDaoToken.balanceOf(ownerAccount.address)).eq(tokenCount);
 
         const quoteTokenAmountPlus1 = BigNumber.from(quoteTokenAmount).add(1)
-
-        let tx3 = await icpdaoDaoToken.connect(ownerAccount).createLPPool(
+        await expect(
+            icpdaoDaoToken.connect(user1Account).createLPPoolOrLinkLPPool(
+                baseTokenAmount,
+                helloToken.address,
+                quoteTokenAmountPlus1,
+                FeeAmount.LOW,
+                tickLower,
+                tickUpper,
+                sqrtPriceX96
+            )
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        let tx3 = await icpdaoDaoToken.connect(ownerAccount).createLPPoolOrLinkLPPool(
             baseTokenAmount,
             helloToken.address,
             quoteTokenAmountPlus1,
@@ -249,8 +276,8 @@ describe("DAOToken", () => {
             tickUpper,
             sqrtPriceX96
         )
-
         await tx3.wait();
+
         expect(await helloToken.balanceOf(ownerAccount.address)).eq(BigNumber.from(quoteTokenAmount).mul(9));
         expect(await helloToken.balanceOf(icpdaoDaoToken.address)).eq(0);
         expect(await helloToken.balanceOf(await icpdaoDaoToken.lpPool())).eq(quoteTokenAmount);
@@ -262,9 +289,35 @@ describe("DAOToken", () => {
         const poolHaveIcpDaoTokenAmountBefore = await icpdaoDaoToken.balanceOf(await icpdaoDaoToken.lpPool());
         const icpdaoDaoTokenHaveIcpDaoTokenAmountBefore = await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address);
 
+        const uniswapV3Pool: IUniswapV3Pool = (await ethers.getContractAt(IUniswapV3PoolABI, await icpdaoDaoToken.lpPool())) as IUniswapV3Pool;
+        const slot0 = (await uniswapV3Pool.slot0());
+        const currentTick = slot0.tick;
+        const fee = await uniswapV3Pool.fee();
+
+        let tickLowerMint: number;
+        let tickUpperMint: number;
+        if (icpdaoDaoToken.address == await uniswapV3Pool.token0()) {
+            tickLowerMint = getNearestTickLower(currentTick, fee, getTickSpacings(fee) as number);
+            tickUpperMint = getMaxTick(getTickSpacings(fee) as number);
+        } else {
+            tickLowerMint = getMinTick(getTickSpacings(fee) as number);
+            tickUpperMint = getNearestTickUpper(currentTick, fee, getTickSpacings(fee) as number);
+        }
+
+        await expect(
+            icpdaoDaoToken.connect(user1Account).updateLPPool(
+                200,
+                tickLowerMint,
+                tickUpperMint
+            )
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+
         let tx4 = await icpdaoDaoToken.connect(ownerAccount).updateLPPool(
-            200
+            200,
+            tickLowerMint,
+            tickUpperMint
         )
+
         const tx4Done = await tx4.wait();
 
         expect(await helloToken.balanceOf(ownerAccount.address)).eq(BigNumber.from(quoteTokenAmount).mul(9));
@@ -297,7 +350,15 @@ describe("DAOToken", () => {
             lpRadio,
             stakingAddress,
             ownerAccount.address,
-            [p, 1, 2, 1, 365, 0, 0],
+            {
+                p: p,
+                aNumerator: 1,
+                aDenominator: 2,
+                bNumerator: 1,
+                bDenominator: 365,
+                c: 0,
+                d: 0
+            },
             "icp-token",
             "ICP"
         )) as DAOToken;
@@ -352,9 +413,9 @@ describe("DAOToken", () => {
         const temporaryTokenAmountBefore = await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address);
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(temporaryTokenAmountBefore);
         expect(await icpdaoDaoToken.balanceOf(ownerAccount.address)).eq(tokenCount)
-        console.log(355, await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address), baseTokenAmount)
+
         const quoteTokenAmountPlus123 = BigNumber.from(quoteTokenAmount).add(123)
-        let tx3 = await icpdaoDaoToken.connect(ownerAccount).createLPPool(
+        let tx3 = await icpdaoDaoToken.connect(ownerAccount).createLPPoolOrLinkLPPool(
             baseTokenAmount,
             weth9.address,
             quoteTokenAmountPlus123,
@@ -388,19 +449,6 @@ describe("DAOToken", () => {
         const poolHaveIcpDaoTokenAmountBefore = await icpdaoDaoToken.balanceOf(await icpdaoDaoToken.lpPool());
         const icpdaoDaoTokenHaveIcpDaoTokenAmountBefore = await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address);
 
-        let tx4 = await icpdaoDaoToken.connect(ownerAccount).updateLPPool(baseTokenAmount)
-        const tx4Done = await tx4.wait();
-
-        expect(await icpdaoDaoToken.balanceOf(ownerAccount.address)).eq(tokenCount);
-
-        const poolHaveIcpDaoTokenAmountAfter = await icpdaoDaoToken.balanceOf(await icpdaoDaoToken.lpPool());
-        const icpdaoDaoTokenHaveIcpDaoTokenAmountAfter = await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address);
-
-        const cha = poolHaveIcpDaoTokenAmountAfter.sub(poolHaveIcpDaoTokenAmountBefore);
-        expect(cha).eq(icpdaoDaoTokenHaveIcpDaoTokenAmountBefore.sub(icpdaoDaoTokenHaveIcpDaoTokenAmountAfter));
-
-        expect(BigNumber.from(baseTokenAmount).gte(cha)).to.equal(true);
-
         const uniswapV3Pool: IUniswapV3Pool = (await ethers.getContractAt(IUniswapV3PoolABI, await icpdaoDaoToken.lpPool())) as IUniswapV3Pool;
         const slot0 = (await uniswapV3Pool.slot0());
         const currentTick = slot0.tick;
@@ -415,6 +463,23 @@ describe("DAOToken", () => {
             tickLowerMint = getMinTick(getTickSpacings(fee) as number);
             tickUpperMint = getNearestTickUpper(currentTick, fee, getTickSpacings(fee) as number);
         }
+
+        let tx4 = await icpdaoDaoToken.connect(ownerAccount).updateLPPool(
+            baseTokenAmount,
+            tickLowerMint,
+            tickUpperMint
+        )
+        const tx4Done = await tx4.wait();
+
+        expect(await icpdaoDaoToken.balanceOf(ownerAccount.address)).eq(tokenCount);
+
+        const poolHaveIcpDaoTokenAmountAfter = await icpdaoDaoToken.balanceOf(await icpdaoDaoToken.lpPool());
+        const icpdaoDaoTokenHaveIcpDaoTokenAmountAfter = await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address);
+
+        const cha = poolHaveIcpDaoTokenAmountAfter.sub(poolHaveIcpDaoTokenAmountBefore);
+        expect(cha).eq(icpdaoDaoTokenHaveIcpDaoTokenAmountBefore.sub(icpdaoDaoTokenHaveIcpDaoTokenAmountAfter));
+
+        expect(BigNumber.from(baseTokenAmount).gte(cha)).to.equal(true);
 
         await ethers.provider.send("evm_setNextBlockTimestamp", [firstMintTimestamp + 86400]);
 
@@ -528,4 +593,352 @@ describe("DAOToken", () => {
         expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1485000000000000"));
 
     })
+
+    it("IcpdaoDaoTokenFactory redeploy", async () => {
+        // deploy IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
+        const IcpdaoDaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
+        const icpdaoDaoTokenFactory = (await IcpdaoDaoTokenFactoryFactory.deploy(
+            deployAccount.address, stakingAddress
+        )) as DAOFactory;
+
+        // deploy icpdaoDaoToken
+        let tokenCount = BigNumber.from(10).pow(18).mul(10000);
+        await (await icpdaoDaoTokenFactory.connect(ownerAccount).deploy(
+            '1',
+            [ownerAccount.address, user1Account.address, user2Account.address],
+            [tokenCount, tokenCount, tokenCount],
+            101,
+            ownerAccount.address,
+            {
+                p: 20,
+                aNumerator: 1,
+                aDenominator: 2,
+                bNumerator: 1,
+                bDenominator: 365,
+                c: 0,
+                d: 0
+            },
+            "icp-token",
+            "ICP"
+        )).wait();
+
+        let icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
+        let icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
+
+        expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
+
+        // redeploy
+        await expect(
+            icpdaoDaoTokenFactory.connect(user1Account).deploy(
+                '1',
+                [ownerAccount.address, user1Account.address, user2Account.address],
+                [tokenCount, tokenCount, tokenCount],
+                101,
+                user1Account.address,
+                {
+                    p: 20,
+                    aNumerator: 1,
+                    aDenominator: 2,
+                    bNumerator: 1,
+                    bDenominator: 365,
+                    c: 0,
+                    d: 0
+                },
+                "icp-token",
+                "ICP"
+            )
+        ).to.be.revertedWith('ICPDAO: NOT OWNER DO REDEPLOY')
+
+        // owner redeploy
+        await (await icpdaoDaoTokenFactory.connect(ownerAccount).deploy(
+            '1',
+            [ownerAccount.address, user1Account.address, user2Account.address],
+            [tokenCount, tokenCount, tokenCount],
+            101,
+            ownerAccount.address,
+            {
+                p: 20,
+                aNumerator: 1,
+                aDenominator: 2,
+                bNumerator: 1,
+                bDenominator: 365,
+                c: 0,
+                d: 0
+            },
+            "icp-token",
+            "ICP"
+        )).wait();
+        icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
+        icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
+        expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
+
+        await (await icpdaoDaoToken.connect(ownerAccount).addManager(user1Account.address)).wait();
+
+        await expect(
+            icpdaoDaoTokenFactory.connect(user1Account).deploy(
+                '1',
+                [ownerAccount.address, user1Account.address, user2Account.address],
+                [tokenCount, tokenCount, tokenCount],
+                101,
+                user1Account.address,
+                {
+                    p: 20,
+                    aNumerator: 1,
+                    aDenominator: 2,
+                    bNumerator: 1,
+                    bDenominator: 365,
+                    c: 0,
+                    d: 0
+                },
+                "icp-token",
+                "ICP"
+            )
+        ).to.be.revertedWith("ICPDAO: NOT OWNER DO REDEPLOY");
+    })
+
+    it("test manager and owner", async () => {
+        // deploy icpdaoDaoToken
+        let tokenCount = BigNumber.from(10).pow(18).mul(10000);
+        const IcpdaoDaoTokenFactory: ContractFactory = new DAOToken__factory(deployAccount);
+
+        const blockNumber = await ethers.provider.getBlockNumber();
+        const block = await ethers.provider.getBlock(blockNumber);
+
+        startTimestamp = block.timestamp;
+        deployTimestamp = startTimestamp + 86400 * 10;
+        firstMintTimestamp = startTimestamp + 86400 * 40;
+
+        await ethers.provider.send("evm_setNextBlockTimestamp", [deployTimestamp]);
+
+        const p = BigNumber.from(10).pow(18).mul(200);
+        const lpRadio = 101;
+        const icpdaoDaoToken = (await IcpdaoDaoTokenFactory.deploy(
+            [ownerAccount.address, user1Account.address, user2Account.address],
+            [tokenCount, tokenCount, tokenCount],
+            lpRadio,
+            stakingAddress,
+            ownerAccount.address,
+            {
+                p: p,
+                aNumerator: 1,
+                aDenominator: 2,
+                bNumerator: 1,
+                bDenominator: 365,
+                c: 0,
+                d: 0
+            },
+            "icp-token",
+            "ICP"
+        )) as DAOToken;
+
+        expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
+
+        const [mockPool, position] = getCreatePoolAndPosition(
+            FeeAmount.LOW,
+            icpdaoDaoToken.address, weth9Address,
+            await icpdaoDaoToken.decimals(), 18,
+            icpdaoDaoToken.address,
+            "1000",
+            icpdaoDaoToken.address,
+            "1"
+        )
+
+        let sqrtPriceX96 = (mockPool as Pool).sqrtRatioX96.toString();
+        let tickLower = getMinTick(TICK_SPACINGS[FeeAmount.LOW])
+        let tickUpper = getMaxTick(TICK_SPACINGS[FeeAmount.LOW])
+        let baseTokenAmount;
+        let quoteTokenAmount;
+
+        if (icpdaoDaoToken.address == (position as Position).amount0.currency.address) {
+            baseTokenAmount = (position as Position).mintAmounts.amount0.toString();
+            quoteTokenAmount = (position as Position).mintAmounts.amount1.toString();
+        } else {
+            baseTokenAmount = (position as Position).mintAmounts.amount1.toString();
+            quoteTokenAmount = (position as Position).mintAmounts.amount0.toString()
+        }
+
+        const quoteTokenAmountPlus123 = BigNumber.from(quoteTokenAmount).add(123);
+
+        await expect(
+            icpdaoDaoToken.connect(user1Account).createLPPoolOrLinkLPPool(
+                baseTokenAmount,
+                weth9.address,
+                quoteTokenAmountPlus123,
+                FeeAmount.LOW,
+                tickLower,
+                tickUpper,
+                sqrtPriceX96,
+                {
+                    value: quoteTokenAmountPlus123,
+                    gasPrice: gasPrice
+                }
+            )
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+
+        await (await icpdaoDaoToken.connect(ownerAccount).addManager(user1Account.address)).wait();
+
+        await expect(
+            icpdaoDaoToken.connect(user1Account).createLPPoolOrLinkLPPool(
+                baseTokenAmount,
+                weth9.address,
+                quoteTokenAmountPlus123,
+                FeeAmount.LOW,
+                tickLower,
+                tickUpper,
+                sqrtPriceX96,
+                {
+                    value: quoteTokenAmountPlus123,
+                    gasPrice: gasPrice
+                }
+            )
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+
+        let tx3 = await icpdaoDaoToken.connect(ownerAccount).createLPPoolOrLinkLPPool(
+            baseTokenAmount,
+            weth9.address,
+            quoteTokenAmountPlus123,
+            FeeAmount.LOW,
+            tickLower,
+            tickUpper,
+            sqrtPriceX96,
+            {
+                value: quoteTokenAmountPlus123,
+                gasPrice: gasPrice
+            }
+        )
+        const tx3Done = await tx3.wait();
+
+        const uniswapV3Pool: IUniswapV3Pool = (await ethers.getContractAt(IUniswapV3PoolABI, await icpdaoDaoToken.lpPool())) as IUniswapV3Pool;
+        const slot0 = (await uniswapV3Pool.slot0());
+        const currentTick = slot0.tick;
+        const fee = await uniswapV3Pool.fee();
+
+        let tickLowerMint: number;
+        let tickUpperMint: number;
+        if (icpdaoDaoToken.address == await uniswapV3Pool.token0()) {
+            tickLowerMint = getNearestTickLower(currentTick, fee, getTickSpacings(fee) as number);
+            tickUpperMint = getMaxTick(getTickSpacings(fee) as number);
+        } else {
+            tickLowerMint = getMinTick(getTickSpacings(fee) as number);
+            tickUpperMint = getNearestTickUpper(currentTick, fee, getTickSpacings(fee) as number);
+        }
+
+        await expect(
+            icpdaoDaoToken.connect(user2Account).updateLPPool(
+                baseTokenAmount,
+                tickLowerMint,
+                tickUpperMint
+            )
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+
+        await (await icpdaoDaoToken.connect(ownerAccount).addManager(user2Account.address)).wait();
+
+        await expect(
+            icpdaoDaoToken.connect(user2Account).updateLPPool(
+                baseTokenAmount,
+                tickLowerMint,
+                tickUpperMint
+            )
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+
+        let tx4 = await icpdaoDaoToken.connect(ownerAccount).updateLPPool(
+            baseTokenAmount,
+            tickLowerMint,
+            tickUpperMint
+        )
+        const tx4Done = await tx4.wait();
+
+        await ethers.provider.send("evm_setNextBlockTimestamp", [firstMintTimestamp + 86400]);
+
+        await expect(
+            icpdaoDaoToken.connect(user3Account).mint(
+                [ownerAccount.address, user1Account.address, user2Account.address],
+                [1, 1, 1],
+                firstMintTimestamp,
+                tickLowerMint,
+                tickUpperMint
+            )
+        ).to.be.revertedWith("NOT OWNER OR MANAGER");
+
+        await (await icpdaoDaoToken.connect(ownerAccount).addManager(user3Account.address)).wait();
+
+        let tx5 = await icpdaoDaoToken.connect(user3Account).mint(
+            [ownerAccount.address, user1Account.address, user2Account.address],
+            [1, 1, 1],
+            firstMintTimestamp,
+            tickLowerMint,
+            tickUpperMint
+        )
+        const tx5Done = await tx5.wait();
+
+
+        for (let i = 0; i <= 2; i++){
+            const tx6 = await swapRouter.connect(user3Account).exactInputSingle(
+                {
+                    tokenIn: weth9Address,
+                    tokenOut: icpdaoDaoToken.address,
+                    fee: fee,
+                    recipient: user3Account.address,
+                    deadline: firstMintTimestamp + 86400 + 60 * 60 * 200,
+                    amountIn: BigNumber.from(10).pow(18),
+                    amountOutMinimum: 0,
+                    sqrtPriceLimitX96: 0
+                },
+                {
+                    value: BigNumber.from(10).pow(18),
+                    gasPrice: gasPrice
+                }
+            )
+            const tx6Done = await tx6.wait();
+        }
+
+        (await icpdaoDaoToken.connect(user3Account).approve(swapRouter.address, MaxUint128)).wait();
+
+        for (let i = 0; i <= 2; i++){
+            const tx7 = await swapRouter.connect(user3Account).exactInputSingle(
+                {
+                    tokenIn: icpdaoDaoToken.address,
+                    tokenOut: weth9Address,
+                    fee: fee,
+                    recipient: user3Account.address,
+                    deadline: firstMintTimestamp + 86400 + 60 * 60 * 200,
+                    amountIn: BigNumber.from(10).pow(18),
+                    amountOutMinimum: 0,
+                    sqrtPriceLimitX96: 0
+                }
+            )
+            const tx7Done = await tx7.wait();
+        }
+
+        let tx7 = await icpdaoDaoToken.connect(user4Account).bonusWithdraw();
+        const tx7Done = await tx7.wait();
+
+        await expect(
+            icpdaoDaoToken.connect(user2Account).addManager(user4Account.address)
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        await expect(
+            icpdaoDaoToken.connect(user1Account).removeManager(user2Account.address)
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        await (await icpdaoDaoToken.connect(ownerAccount).removeManager(user2Account.address)).wait();
+        await (await icpdaoDaoToken.connect(ownerAccount).removeManager(user1Account.address)).wait();
+        await expect(
+            icpdaoDaoToken.connect(user2Account).addManager(user4Account.address)
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        await expect(
+            icpdaoDaoToken.connect(user1Account).removeManager(user3Account.address)
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        await (await icpdaoDaoToken.connect(ownerAccount).removeManager(user3Account.address)).wait();
+
+        //
+        await (await icpdaoDaoToken.connect(ownerAccount).addManager(user1Account.address)).wait();
+        await expect(
+            icpdaoDaoToken.connect(user1Account).transferOwnership(user2Account.address)
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        await expect(
+            icpdaoDaoToken.connect(user2Account).transferOwnership(user3Account.address)
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        await (await icpdaoDaoToken.connect(ownerAccount).transferOwnership(user1Account.address)).wait();
+        await (await icpdaoDaoToken.connect(user1Account).addManager(user2Account.address)).wait();
+    })
+
 })

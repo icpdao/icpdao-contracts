@@ -84,8 +84,8 @@ library UniswapMath {
             amount1Desired = _quoteTokenAmount;
         }
 
-        uint256 amount0Min = (amount0Desired * 9975) / 10000;
-        uint256 amount1Min = (amount1Desired * 9975) / 10000;
+        uint256 amount0Min = (amount0Desired * 9) / 10;
+        uint256 amount1Min = (amount1Desired * 9) / 10;
         uint256 deadline = block.timestamp + 60 * 60;
 
         params = INonfungiblePositionManager.MintParams({
@@ -169,6 +169,7 @@ library UniswapMath {
         ) = getNearestSingleMintParams(lpPool);
         require(tickLower >= nearestTickLower);
         require(tickUpper <= nearestTickUpper);
+
         INonfungiblePositionManager.MintParams memory params = buildMintParams(
             lpMintValue,
             quoteTokenAddress,
@@ -177,8 +178,12 @@ library UniswapMath {
             tickLower,
             tickUpper
         );
-        // TODO 目前的实现并不能精确的把 _baseTokenAmount 完全放入进去
-        params.amount0Min = 0;
+
+        if (params.token0 == quoteTokenAddress) {
+            params.amount0Min = 0;
+        } else {
+            params.amount1Min = 0;
+        }
         (, , amount0, amount1) = inpm.mint(params);
     }
 

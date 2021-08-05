@@ -15,6 +15,7 @@ export default {
       allowUnlimitedContractSize: false,
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/64gGTjEbQ13TNWug6z3SJWLKQTOHRVJ9`,
+        blockNumber: 12811541
       },
     },
     mainnet: {

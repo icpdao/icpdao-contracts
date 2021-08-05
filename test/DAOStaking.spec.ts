@@ -21,15 +21,26 @@ describe("DAOStaking", () => {
 
     before("deploy dao staking && dao factory", async () => {
         [w1, w2, w3, w4, w5, w6] = await ethers.getSigners();
-        daoStaking = (await (await ethers.getContractFactory("DAOStaking")).deploy()) as DAOStaking;
+        daoStaking = (await (await ethers.getContractFactory("DAOStaking")).deploy(w1.address)) as DAOStaking;
         
         const daoFactory_ = await ethers.getContractFactory('DAOFactory');
-        daoFactory = (await daoFactory_.deploy(daoStaking.address)) as DAOFactory;
+        daoFactory = (await daoFactory_.deploy(w1.address, daoStaking.address)) as DAOFactory;
         // mock icp holders: w1, w2
         await daoFactory.deploy(
+            "mock_icp_id_1",
             [w1.address, w2.address], [1000, 1000],
-            50, w1.address, [90, 1, 3, 1, 30, 0, 0],
-            "mock_icp_id_1", "MockICP", "MICP"
+            50, w1.address, 
+            // [90, 1, 3, 1, 30, 0, 0],
+            {
+                p: 90,
+                aNumerator: 1,
+                aDenominator: 3,
+                bNumerator: 1,
+                bDenominator: 30,
+                c: 0,
+                d: 0
+            },
+            "MockICP", "MICP"
         );
 
         mockICP = await daoFactory.tokens("mock_icp_id_1");
@@ -37,7 +48,7 @@ describe("DAOStaking", () => {
 
         await daoStaking.setICPToken(mockICP);
 
-        expect(await daoStaking.ICP()).to.be.equal(mockICP);
+        expect(await daoStaking.ICPD()).to.be.equal(mockICP);
         
         // mock bonus: mockERC1, mockERC2, mockERC3
         mockERC1 = (await (await ethers.getContractFactory("ERC20Mock")).deploy(
