@@ -4,12 +4,8 @@ pragma solidity >=0.8.4;
 import './IDAOPermission.sol';
 import './IDAOEvents.sol';
 
-interface IDAOToken is 
-    IDAOPermission,
-    IDAOEvents
-{
-
-    event CreateLPPool(
+interface IDAOToken is IDAOPermission, IDAOEvents {
+    event CreateLPPoolOrLinkLPPool(
         uint256 _baseTokenAmount,
         address _quoteTokenAddress,
         uint256 _quoteTokenAmount,
@@ -41,15 +37,22 @@ interface IDAOToken is
     event TransferOwnership(address _newOwner);
 
     function staking() external returns (address);
+
     function lpRatio() external returns (uint256);
+
     function lpToken0() external returns (address);
+
     function lpToken1() external returns (address);
+
     function lpPool() external returns (address);
+
     function UNISWAP_V3_POSITIONS() external returns (address);
+
     function WETH9() external returns (address);
+
     function destruct() external;
 
-    function createLPPool(
+    function createLPPoolOrLinkLPPool(
         uint256 _baseTokenAmount,
         address _quoteTokenAddress,
         uint256 _quoteTokenAmount,

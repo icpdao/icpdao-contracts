@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0+
 pragma solidity >=0.8.4;
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../interfaces/external/INonfungiblePositionManager.sol";
+import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '../interfaces/external/INonfungiblePositionManager.sol';
 
-import "hardhat/console.sol";
-
+import 'hardhat/console.sol';
 
 library UniswapMath {
     int24 constant tick500 = -887270;
@@ -15,16 +14,16 @@ library UniswapMath {
     function getLowerTick(uint24 fee) private pure returns (int24 tick) {
         if (fee == 500) return tick500;
         else if (fee == 3000) return tick3000;
-        else if (fee == 10000) return tick10000; 
+        else if (fee == 10000) return tick10000;
     }
 
     function getUpperTick(uint24 fee) private pure returns (int24 tick) {
         if (fee == 500) return -tick500;
         else if (fee == 3000) return -tick3000;
-        else if (fee == 10000) return -tick10000; 
+        else if (fee == 10000) return -tick10000;
     }
 
-    function createDAOTokenPool(
+    function createDAOTokenPoolAndMint(
         INonfungiblePositionManager inpm,
         uint256 _baseTokenAmount,
         address _quoteTokenAddress,
@@ -34,7 +33,16 @@ library UniswapMath {
         int24 _tickUpper,
         uint160 _sqrtPriceX96,
         uint256 _value
-    ) internal returns(address lpPool, address lpToken0, address lpToken1) {
+    )
+        internal
+        returns (
+            address lpPool,
+            address lpToken0,
+            address lpToken1,
+            uint256 amount0,
+            uint256 amount1
+        )
+    {
         INonfungiblePositionManager.MintParams memory params = buildMintParams(
             _baseTokenAmount,
             _quoteTokenAddress,
@@ -47,14 +55,9 @@ library UniswapMath {
         lpToken0 = params.token0;
         lpToken1 = params.token1;
 
-        lpPool = inpm.createAndInitializePoolIfNecessary(
-            params.token0,
-            params.token1,
-            _fee,
-            _sqrtPriceX96
-        );
+        lpPool = inpm.createAndInitializePoolIfNecessary(params.token0, params.token1, _fee, _sqrtPriceX96);
 
-        inpm.mint{ value: _value }(params);
+        (, , amount0, amount1) = inpm.mint{value: _value}(params);
     }
 
     function buildMintParams(
@@ -64,8 +67,7 @@ library UniswapMath {
         uint24 fee,
         int24 tickLower,
         int24 tickUpper
-    ) internal view returns (INonfungiblePositionManager.MintParams memory params)
-    {
+    ) internal view returns (INonfungiblePositionManager.MintParams memory params) {
         address token0;
         address token1;
         uint256 amount0Desired;
@@ -101,14 +103,15 @@ library UniswapMath {
         });
     }
 
-    function getNearestSingleMintParams(
-        address lpPool
-    ) internal view returns (
-        address quoteTokenAddress,
-        uint24 fee,
-        int24 tickLower,
-        int24 tickUpper
-    )
+    function getNearestSingleMintParams(address lpPool)
+        internal
+        view
+        returns (
+            address quoteTokenAddress,
+            uint24 fee,
+            int24 tickLower,
+            int24 tickUpper
+        )
     {
         IUniswapV3Pool pool = IUniswapV3Pool(lpPool);
 
@@ -157,28 +160,35 @@ library UniswapMath {
         uint256 lpMintValue,
         int24 tickLower,
         int24 tickUpper
-    ) internal returns(uint256 amount0, uint256 amount1) {
-        (address quoteTokenAddress, uint24 fee, int24 nearestTickLower, int24 nearestTickUpper) = getNearestSingleMintParams(lpPool);
+    ) internal returns (uint256 amount0, uint256 amount1) {
+        (
+            address quoteTokenAddress,
+            uint24 fee,
+            int24 nearestTickLower,
+            int24 nearestTickUpper
+        ) = getNearestSingleMintParams(lpPool);
         require(tickLower >= nearestTickLower);
         require(tickUpper <= nearestTickUpper);
         INonfungiblePositionManager.MintParams memory params = buildMintParams(
-            lpMintValue, quoteTokenAddress, 0, fee, tickLower, tickUpper);
+            lpMintValue,
+            quoteTokenAddress,
+            0,
+            fee,
+            tickLower,
+            tickUpper
+        );
         // TODO 目前的实现并不能精确的把 _baseTokenAmount 完全放入进去
         params.amount0Min = 0;
         (, , amount0, amount1) = inpm.mint(params);
     }
-
 
     function bonusWithdrawByTokenId(
         INonfungiblePositionManager inpm,
         uint256 tokenId,
         address _lpToken0,
         address _lpToken1
-    )
-        internal
-        returns (uint256 token0Add, uint256 token1Add)
-    {
-        ( , , address token0, address token1, , , , , , , , ) = inpm.positions(tokenId);
+    ) internal returns (uint256 token0Add, uint256 token1Add) {
+        (, , address token0, address token1, , , , , , , , ) = inpm.positions(tokenId);
 
         if (_lpToken0 != token0 || _lpToken1 != token1) {
             token0Add = 0;
