@@ -40,6 +40,8 @@ interface IDAOToken is IDAOPermission, IDAOEvents {
 
     function lpRatio() external returns (uint256);
 
+    function temporaryAmount() external returns (uint256);
+
     function lpToken0() external returns (address);
 
     function lpToken1() external returns (address);
@@ -77,4 +79,6 @@ interface IDAOToken is IDAOPermission, IDAOEvents {
     ) external;
 
     function bonusWithdraw() external;
+
+    function bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) external;
 }

@@ -16,6 +16,10 @@ describe("DAOFactory", async () => {
     })
 
     it("create one dao && re deploy", async () => {
+        expect(
+            await daoFactory.staking()
+        ).to.eq(mockStaking.address)
+
         const [w1, w2, w3, w4, w5, w6] = await ethers.getSigners();
         const doDeploy = await daoFactory.connect(w2).deploy(
             "mock_dao_id_1",
@@ -91,4 +95,17 @@ describe("DAOFactory", async () => {
         console.log("redeploy gas limit: ", reDeploy.gasLimit?.toNumber());
     })
 
+    it("destruct", async () => {
+        const [w1, w2, w3] = await ethers.getSigners();
+        const erc20Mock = await ethers.getContractFactory('ERC20Mock');
+        const _mockStaking = (await erc20Mock.deploy([w1.address, w2.address, w3.address], [100, 100, 100], "Mock", "MOCK")) as ERC20Mock;
+        const daoFactory_ = await ethers.getContractFactory('DAOFactory');
+        const _daoFactory = (await daoFactory_.deploy(w1.address, _mockStaking.address)) as DAOFactory;
+
+        await expect(
+            _daoFactory.connect(w2).destruct()
+        ).to.be.revertedWith("ICPDAO: ONLY OWNER CAN CALL DESTRUCT")
+
+        await _daoFactory.connect(w1).destruct()
+    })
 })

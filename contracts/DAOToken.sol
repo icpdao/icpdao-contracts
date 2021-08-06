@@ -28,7 +28,7 @@ contract DAOToken is IDAOToken, ERC20 {
     EnumerableSet.AddressSet private _managers;
     address private immutable _WETH9;
 
-    uint256 private _temporaryAmount;
+    uint256 public override temporaryAmount;
     MintMath.Anchor private _anchor;
 
     address public immutable override staking;
@@ -70,8 +70,8 @@ contract DAOToken is IDAOToken, ERC20 {
             _mint(_genesisTokenAddressList[i], _genesisTokenAmountList[i]);
         }
         if (totalSupply() > 0) {
-            _temporaryAmount = totalSupply().divMul(100, _lpRatio);
-            _mint(address(this), _temporaryAmount);
+            temporaryAmount = totalSupply().divMul(100, _lpRatio);
+            _mint(address(this), temporaryAmount);
         }
         _anchor.initialize(_mintArgs, block.timestamp);
         _owner = _ownerAddress;
@@ -132,7 +132,7 @@ contract DAOToken is IDAOToken, ERC20 {
     ) external payable override onlyOwner {
         require(_baseTokenAmount > 0, 'ICPDAO: BASE TOKEN AMOUNT MUST > 0');
         require(_quoteTokenAmount > 0, 'ICPDAO: QUOTE TOKEN AMOUNT MUST > 0');
-        require(_baseTokenAmount <= _temporaryAmount, 'ICPDAO: NOT ENOUGH TEMPORARYAMOUNT');
+        require(_baseTokenAmount <= temporaryAmount, 'ICPDAO: NOT ENOUGH TEMPORARYAMOUNT');
         require(_quoteTokenAddress != address(0), 'ICPDAO: QUOTE TOKEN NOT EXIST');
         require(_quoteTokenAddress != address(this), 'ICPDAO: QUOTE TOKEN CAN NOT BE BASE TOKEN');
         require(_fee == 500 || _fee == 3000 || _fee == 10000, 'ICPDAO: FEE INVALID');
@@ -187,9 +187,9 @@ contract DAOToken is IDAOToken, ERC20 {
         }
 
         if (lpToken0 == address(this)) {
-            _temporaryAmount -= amount0;
+            temporaryAmount -= amount0;
         } else {
-            _temporaryAmount -= amount1;
+            temporaryAmount -= amount1;
         }
 
         emit CreateLPPoolOrLinkLPPool(
@@ -208,7 +208,7 @@ contract DAOToken is IDAOToken, ERC20 {
         int24 _tickLower,
         int24 _tickUpper
     ) external override onlyOwner {
-        require(_baseTokenAmount <= _temporaryAmount, 'ICPDAO: NOT ENOUGH TEMPORARYAMOUNT');
+        require(_baseTokenAmount <= temporaryAmount, 'ICPDAO: NOT ENOUGH TEMPORARYAMOUNT');
         require(lpPool != address(0), 'ICPDAO: LP POOL DOES NOT EXIST');
 
         (uint256 amount0, uint256 amount1) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mintToLPByTick(
@@ -218,9 +218,9 @@ contract DAOToken is IDAOToken, ERC20 {
             _tickUpper
         );
         if (lpToken0 == address(this)) {
-            _temporaryAmount -= amount0;
+            temporaryAmount -= amount0;
         } else {
-            _temporaryAmount -= amount1;
+            temporaryAmount -= amount1;
         }
         emit UpdateLPPool(_baseTokenAmount);
     }
@@ -250,7 +250,7 @@ contract DAOToken is IDAOToken, ERC20 {
 
         uint256 thisTemporaryAmount = mintValue.divMul(100, lpRatio);
         _mint(address(this), thisTemporaryAmount);
-        _temporaryAmount += thisTemporaryAmount;
+        temporaryAmount += thisTemporaryAmount;
 
         if (lpPool != address(0)) {
             (uint256 amount0, uint256 amount1) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mintToLPByTick(
@@ -260,9 +260,9 @@ contract DAOToken is IDAOToken, ERC20 {
                 _tickUpper
             );
             if (lpToken0 == address(this)) {
-                _temporaryAmount -= amount0;
+                temporaryAmount -= amount0;
             } else {
-                _temporaryAmount -= amount1;
+                temporaryAmount -= amount1;
             }
         }
         emit Mint(_mintTokenAddressList, _mintTokenAmountRatioList, _endTimestamp, _tickLower, _tickUpper);
@@ -277,6 +277,15 @@ contract DAOToken is IDAOToken, ERC20 {
                 index
             );
             console.log('set', index, tokenIdList[index]);
+        }
+        _bonusWithdrawByTokenIdList(tokenIdList);
+    }
+
+    function bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) external override {
+        INonfungiblePositionManager pm = INonfungiblePositionManager(UNISWAP_V3_POSITIONS);
+        for (uint256 index = 0; index < tokenIdList.length; index++) {
+            uint256 tokenId = tokenIdList[index];
+            require(pm.ownerOf(tokenId) == address(this));
         }
         _bonusWithdrawByTokenIdList(tokenIdList);
     }
