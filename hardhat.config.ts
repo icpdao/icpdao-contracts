@@ -2,6 +2,10 @@ import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
 import '@nomiclabs/hardhat-etherscan'
+import 'hardhat-deploy'
+
+const dotenv = require("dotenv")
+dotenv.config()
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -14,7 +18,7 @@ export default {
     hardhat: {
       allowUnlimitedContractSize: false,
       forking: {
-        url: `https://eth-mainnet.alchemyapi.io/v2/64gGTjEbQ13TNWug6z3SJWLKQTOHRVJ9`,
+        url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMYAPI_API_KEY}`,
         blockNumber: 12811541
       },
     },
@@ -22,7 +26,8 @@ export default {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
     },
     ropsten: {
-      url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      url: `https://eth-ropsten.alchemyapi.io/v2/${process.env.ALCHEMYAPI_API_KEY}`,
+      accounts: [process.env.ROPSTEN_DEPLOY_ACCOUNT]
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -33,6 +38,9 @@ export default {
     kovan: {
       url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
     },
+  },
+  namedAccounts: {
+    deployer: 0,
   },
   etherscan: {
     // Your API key for Etherscan
