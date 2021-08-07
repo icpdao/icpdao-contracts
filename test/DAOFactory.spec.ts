@@ -95,6 +95,30 @@ describe("DAOFactory", async () => {
         console.log("redeploy gas limit: ", reDeploy.gasLimit?.toNumber());
     })
 
+    it("transferOwnership", async () => {
+        const [w1, w2, w3] = await ethers.getSigners();
+        const erc20Mock = await ethers.getContractFactory('ERC20Mock');
+        const _mockStaking = (await erc20Mock.deploy([w1.address, w2.address, w3.address], [100, 100, 100], "Mock", "MOCK")) as ERC20Mock;
+        const daoFactory_ = await ethers.getContractFactory('DAOFactory');
+        const _daoFactory = (await daoFactory_.deploy(w1.address, _mockStaking.address)) as DAOFactory;
+
+        expect(
+            await _daoFactory.owner()
+        ).to.eq(
+            w1.address
+        )
+        await expect(
+            _daoFactory.connect(w2).transferOwnership(w3.address)
+        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+
+        await (await _daoFactory.connect(w1).transferOwnership(w2.address)).wait();
+        expect(
+            await _daoFactory.owner()
+        ).to.eq(
+            w2.address
+        )
+    })
+
     it("destruct", async () => {
         const [w1, w2, w3] = await ethers.getSigners();
         const erc20Mock = await ethers.getContractFactory('ERC20Mock');

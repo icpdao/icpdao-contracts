@@ -6,8 +6,6 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 
-import 'hardhat/console.sol';
-
 import './interfaces/external/INonfungiblePositionManager.sol';
 import './interfaces/external/IUniswapV3Factory.sol';
 import './interfaces/IDAOToken.sol';
@@ -277,7 +275,6 @@ contract DAOToken is IDAOToken, ERC20 {
                 address(this),
                 index
             );
-            console.log('set', index, tokenIdList[index]);
         }
         _bonusWithdrawByTokenIdList(tokenIdList);
     }
@@ -303,7 +300,6 @@ contract DAOToken is IDAOToken, ERC20 {
                 lpToken0,
                 lpToken1
             );
-            console.log('_bonusWithdrawByTokenId', tokenIdList[index], token0Add, token1Add);
             token0TotalAmount += token0Add;
             token1TotalAmount += token1Add;
         }

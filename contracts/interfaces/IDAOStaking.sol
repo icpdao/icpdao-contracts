@@ -52,5 +52,5 @@ interface IDAOStaking {
 
     function owner() external view returns (address);
 
-    function transferOwnership(address _newOwner) external;
+    function transferOwnership(address payable _newOwner) external;
 }

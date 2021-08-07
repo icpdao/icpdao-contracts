@@ -11,7 +11,7 @@ import 'hardhat/console.sol';
 contract DAOStaking is Context, IDAOStaking {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    address private _owner;
+    address payable private _owner;
     address public override ICPD;
     // 用户质押 ICPDAO 的总数量
     uint256 public override totalStaking;
@@ -42,7 +42,7 @@ contract DAOStaking is Context, IDAOStaking {
         _;
     }
 
-    constructor(address owner_) {
+    constructor(address payable owner_) {
         _owner = owner_;
     }
 
@@ -254,7 +254,7 @@ contract DAOStaking is Context, IDAOStaking {
         result = _owner;
     }
 
-    function transferOwnership(address newOwner) external override onlyOwner {
+    function transferOwnership(address payable newOwner) external override onlyOwner {
         require(newOwner != address(0));
         _owner = newOwner;
 
