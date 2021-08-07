@@ -85,6 +85,7 @@ contract DAOToken is IDAOToken, ERC20 {
     }
 
     function transferOwnership(address payable _newOwner) external override onlyOwner {
+        require(_newOwner != address(0), 'ICPDAO: NEW OWNER INVALID');
         _owner = _newOwner;
         emit TransferOwnership(_newOwner);
     }
