@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0+
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';

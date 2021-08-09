@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0+
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
 /// @title DAO Permission Model
@@ -6,22 +6,13 @@ pragma solidity >=0.8.4;
 interface IDAOPermission {
     /// @notice This is the owner of the DAO.
     /// @return The address of the owner of the DAO.
-    function owner()
-        external
-        view
-        returns (address);
+    function owner() external view returns (address);
 
     function transferOwnership(address payable _newOwner) external;
 
-    function managers()
-        external
-        view
-        returns (address[] memory);
+    function managers() external view returns (address[] memory);
 
-    function isManager(address _address)
-        external
-        view
-        returns (bool);
+    function isManager(address _address) external view returns (bool);
 
     /// @notice Add Manager to the DAO.
     /// @dev if the manager is already a manager, nothing will happen.
@@ -32,5 +23,4 @@ interface IDAOPermission {
     /// @dev if the manager is not a manager, nothing will happen.
     /// @param manager The address of the manager.
     function removeManager(address manager) external;
-
 }
