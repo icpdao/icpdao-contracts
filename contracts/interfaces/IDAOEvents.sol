@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0+
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
 /// @title Events emitted by a DAO.
@@ -9,5 +9,4 @@ interface IDAOEvents {
 
     /// @notice Emitted when the DAO manger minted.
     event Mint();
-
 }
