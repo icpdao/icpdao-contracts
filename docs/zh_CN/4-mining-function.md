@@ -25,12 +25,12 @@ $$
 
 所有的挖矿曲线 $y=f(x) (x\ge0, x\subseteq N^+)$ 必须满足:
 $$
-y = f(x) =a^{\lceil bx+c\rceil} \ast P + d \ \ \ (其中a, b\subseteq  Q,\ P,c,d\subseteq N)
+y = f(x) =a^{\lfloor bx\rfloor+c} \ast P + d \ \ \ (其中a, b\subseteq  Q,\ P,c,d\subseteq N)
 $$
 
 例如, 当 $a=\frac{1}{2},\ b=1,\ c=-1,\ L(x)=10,\ d=0$ 时
 $$
-y=f(x)=(\frac{1}{2})^{\lceil x-1\rceil}*10
+y=f(x)=(\frac{1}{2})^{\lfloor x\rfloor-1}*10
 $$
 
 
