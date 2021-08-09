@@ -8,27 +8,23 @@ import './interfaces/IDAOToken.sol';
 import './libraries/MintMath.sol';
 import './DAOToken.sol';
 
-
 contract DAOFactory is Context, IDAOFactory {
     address payable private _owner;
-    
-    mapping (string => address) public override tokens;
+
+    mapping(string => address) public override tokens;
 
     address public immutable override staking;
-    
-    constructor (
-        address payable _ownerAddress,
-        address _stakingAddress
-    ) {
+
+    constructor(address payable _ownerAddress, address _stakingAddress) {
         _owner = _ownerAddress;
         staking = _stakingAddress;
     }
 
     function destruct() external override {
-        require(_owner == _msgSender(), "ICPDAO: ONLY OWNER CAN CALL DESTRUCT");
+        require(_owner == _msgSender(), 'ICPDAO: ONLY OWNER CAN CALL DESTRUCT');
         selfdestruct(_owner);
     }
-    
+
     function deploy(
         string memory _daoID,
         address[] memory _genesisTokenAddressList,
@@ -41,13 +37,41 @@ contract DAOFactory is Context, IDAOFactory {
     ) external override returns (address token) {
         if (tokens[_daoID] != address(0)) {
             IDAOToken oldToken = IDAOToken(tokens[_daoID]);
-            require(_msgSender() == oldToken.owner(), "ICPDAO: NOT OWNER DO REDEPLOY");
+            require(_msgSender() == oldToken.owner(), 'ICPDAO: NOT OWNER DO REDEPLOY');
         }
-        token = address(new DAOToken(
-            _genesisTokenAddressList, _genesisTokenAmountList,
-            _lpRatio, staking, _ownerAddress, _mintArgs, _erc20Name, _erc20Symbol
-        ));
+        token = address(
+            new DAOToken(
+                _genesisTokenAddressList,
+                _genesisTokenAmountList,
+                _lpRatio,
+                staking,
+                _ownerAddress,
+                _mintArgs,
+                _erc20Name,
+                _erc20Symbol
+            )
+        );
         tokens[_daoID] = token;
-        emit Deploy(_daoID, _genesisTokenAddressList, _genesisTokenAmountList, _lpRatio, _ownerAddress, _mintArgs, _erc20Name, _erc20Symbol, token);
+        emit Deploy(
+            _daoID,
+            _genesisTokenAddressList,
+            _genesisTokenAmountList,
+            _lpRatio,
+            _ownerAddress,
+            _mintArgs,
+            _erc20Name,
+            _erc20Symbol,
+            token
+        );
+    }
+
+    function owner() external view override returns (address) {
+        return _owner;
+    }
+
+    function transferOwnership(address payable _newOwner) external override {
+        require(msg.sender == _owner, 'ICPDAO: NOT OWNER');
+        require(_newOwner != address(0), 'ICPDAO: NEW OWNER INVALID');
+        _owner = _newOwner;
     }
 }

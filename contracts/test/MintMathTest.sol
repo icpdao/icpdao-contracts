@@ -6,16 +6,12 @@ import '../libraries/MintMath.sol';
 contract MintMathTest {
     MintMath.Anchor public anchor;
     uint256 public results;
-    function initialize(
-        uint256[7] memory args,
-        uint256 time
-    ) public {
+
+    function initialize(MintMath.MintArgs memory args, uint256 time) public {
         MintMath.initialize(anchor, args, time);
     }
 
-    function total(
-        uint256 endTimestamp
-    ) public {
+    function total(uint256 endTimestamp) public {
         results = MintMath.total(anchor, endTimestamp);
     }
 
@@ -26,5 +22,4 @@ contract MintMathTest {
     ) public pure returns (uint256) {
         return MintMath.mulDiv(a, b, denominator);
     }
-    
 }

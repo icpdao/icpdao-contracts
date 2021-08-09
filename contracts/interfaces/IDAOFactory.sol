@@ -3,11 +3,9 @@ pragma solidity >=0.8.4;
 
 import '../libraries/MintMath.sol';
 
-
 /// @title DAOFactory interface.
 /// @notice to be used deploy daotoken contract.
 interface IDAOFactory {
-    
     event Deploy(
         string indexed _daoID,
         address[] _genesisTokenAddressList,
@@ -25,9 +23,7 @@ interface IDAOFactory {
     /// @notice Get DAOToken address by daoID.
     /// @param _daoID A unique ID provided by the ICPDAO.
     /// @return DAOToken address.
-    function tokens(
-        string memory _daoID
-    ) external view returns (address);
+    function tokens(string memory _daoID) external view returns (address);
 
     function staking() external view returns (address);
 
@@ -42,4 +38,7 @@ interface IDAOFactory {
         string memory _erc20Symbol
     ) external returns (address token);
 
+    function owner() external view returns (address);
+
+    function transferOwnership(address payable _newOwner) external;
 }

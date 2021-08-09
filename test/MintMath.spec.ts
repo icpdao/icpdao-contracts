@@ -35,26 +35,35 @@ describe('MintMath', () => {
     })
 
     it('test days 10, 1/2 365', async () => {
-        let currentTime = (new Date()).getTime()
+        let currentTime = Math.floor((new Date()).getTime() / 1000);
         // 每日 10 token, 每 365 天 减半一次
-        const args1: [
-            BigNumberish,
-            BigNumberish,
-            BigNumberish,
-            BigNumberish,
-            BigNumberish,
-            BigNumberish,
-            BigNumberish
-        ] = [10, 1, 2, 1, 365, 0, 0]
-        await mintMathTest.initialize(args1, currentTime)
-        expect((await mintMathTest.anchor()).lastTimestamp).to.be.equal(currentTime)
+        // const args1: [
+        //     BigNumberish,
+        //     BigNumberish,
+        //     BigNumberish,
+        //     BigNumberish,
+        //     BigNumberish,
+        //     BigNumberish,
+        //     BigNumberish
+        // ] = [10, 1, 2, 1, 365, 0, 0]
+        const args = {
+            p: 10,
+            aNumerator: 1,
+            aDenominator: 2,
+            bNumerator: 1,
+            bDenominator: 365,
+            c: 0,
+            d: 0
+        }
+        await mintMathTest.initialize(args, currentTime)
+        expect((await mintMathTest.anchor()).lastTimestamp).to.be.equal(Math.floor(currentTime / 86400) * 86400)
         expect((await mintMathTest.anchor()).n).to.be.equal(0)
         currentTime = currentTime + 86400 * 2 + 8
         await mintMathTest.total(currentTime)
         expect(await mintMathTest.results()).to.be.equal(20)
         currentTime = currentTime + 86400 * 363
         await mintMathTest.total(currentTime)
-        expect(await mintMathTest.results()).to.be.equal(3625)
+        expect(await mintMathTest.results()).to.be.equal(3620)
     })
 
 })
