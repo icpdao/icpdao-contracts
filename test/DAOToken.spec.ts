@@ -585,7 +585,17 @@ describe("IcpdaoDaoToken", () => {
         expect(poolHaveIcpDaoTokenAmountAfterMint.add(icpdaoDaoTokenHaveIcpDaoTokenAmountAfterMint)).eq(
             poolHaveIcpDaoTokenAmountBeforeMint.add(icpdaoDaoTokenHaveIcpDaoTokenAmountBeforeMint).add(p.mul(30).mul(lpRadio).div(100))
         )
-
+        
+        const _mintAnchor = await icpdaoDaoToken.mintAnchor();
+        expect(_mintAnchor.p).to.eq(p)
+        expect(_mintAnchor.aNumerator).to.eq(1)
+        expect(_mintAnchor.aDenominator).to.eq(2)
+        expect(_mintAnchor.bNumerator).to.eq(1)
+        expect(_mintAnchor.bDenominator).to.eq(365)
+        expect(_mintAnchor.c).to.eq(0)
+        expect(_mintAnchor.d).to.eq(0)
+        expect(_mintAnchor.lastTimestamp).to.eq(firstMintTimestamp)
+        expect(_mintAnchor.n).to.eq(BigNumber.from(30))
 
         const user3AccountHaveIcpDaoTokenAmountBeforeExact = await icpdaoDaoToken.balanceOf(user3Account.address);
 
