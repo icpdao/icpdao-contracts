@@ -81,4 +81,19 @@ interface IDAOToken is IDAOPermission, IDAOEvents {
     function bonusWithdraw() external;
 
     function bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) external;
+
+    function mintAnchor()
+        external
+        view
+        returns (
+            uint128 p,
+            uint16 aNumerator,
+            uint16 aDenominator,
+            uint16 bNumerator,
+            uint16 bDenominator,
+            uint16 c,
+            uint16 d,
+            uint256 lastTimestamp,
+            uint256 n
+        );
 }

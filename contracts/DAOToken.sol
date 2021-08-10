@@ -288,6 +288,34 @@ contract DAOToken is IDAOToken, ERC20 {
         _bonusWithdrawByTokenIdList(tokenIdList);
     }
 
+    function mintAnchor()
+        external
+        view
+        override
+        returns (
+            uint128 p,
+            uint16 aNumerator,
+            uint16 aDenominator,
+            uint16 bNumerator,
+            uint16 bDenominator,
+            uint16 c,
+            uint16 d,
+            uint256 lastTimestamp,
+            uint256 n
+        )
+    {
+        p = _anchor.args.p;
+        aNumerator = _anchor.args.aNumerator;
+        aDenominator = _anchor.args.aDenominator;
+        bNumerator = _anchor.args.bNumerator;
+        bDenominator = _anchor.args.bDenominator;
+        c = _anchor.args.c;
+        d = _anchor.args.d;
+
+        lastTimestamp = _anchor.lastTimestamp;
+        n = _anchor.n;
+    }
+
     function _bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) private {
         uint256 token0TotalAmount;
         uint256 token1TotalAmount;
