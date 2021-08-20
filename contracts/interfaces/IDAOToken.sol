@@ -12,7 +12,8 @@ interface IDAOToken is IDAOPermission, IDAOEvents {
         uint24 _fee,
         uint160 _sqrtPriceX96,
         int24 _tickLower,
-        int24 _tickUpper
+        int24 _tickUpper,
+        address _lpPool
     );
 
     event UpdateLPPool(uint256 _baseTokenAmount);
@@ -22,7 +23,8 @@ interface IDAOToken is IDAOPermission, IDAOEvents {
         uint24[] _mintTokenAmountRatioList,
         uint256 _endTimestamp,
         int24 _tickLower,
-        int24 _tickUpper
+        int24 _tickUpper,
+        uint256 _mintValue
     );
 
     event BonusWithdrawByTokenIdList(
