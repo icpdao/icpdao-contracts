@@ -198,7 +198,8 @@ contract DAOToken is IDAOToken, ERC20 {
             _fee,
             _sqrtPriceX96,
             _tickLower,
-            _tickUpper
+            _tickUpper,
+            lpPool
         );
     }
 
@@ -264,7 +265,7 @@ contract DAOToken is IDAOToken, ERC20 {
                 temporaryAmount -= amount1;
             }
         }
-        emit Mint(_mintTokenAddressList, _mintTokenAmountRatioList, _endTimestamp, _tickLower, _tickUpper);
+        emit Mint(_mintTokenAddressList, _mintTokenAmountRatioList, _endTimestamp, _tickLower, _tickUpper, mintValue);
     }
 
     function bonusWithdraw() external override {
