@@ -562,6 +562,7 @@ describe("IcpdaoDaoToken", () => {
         let tx5 = await icpdaoDaoToken.connect(ownerAccount).mint(
             [ownerAccount.address, user1Account.address, user2Account.address],
             [1, 1, 1],
+            (await icpdaoDaoToken.mintAnchor()).lastTimestamp,
             firstMintTimestamp,
             tickLowerMint,
             tickUpperMint
@@ -802,6 +803,7 @@ describe("IcpdaoDaoToken", () => {
         let tx5 = await icpdaoDaoToken.connect(ownerAccount).mint(
             [ownerAccount.address, user1Account.address, user2Account.address],
             [1, 1, 1],
+            (await icpdaoDaoToken.mintAnchor()).lastTimestamp,
             firstMintTimestamp,
             tickLowerMint,
             tickUpperMint
@@ -1156,6 +1158,18 @@ describe("IcpdaoDaoToken", () => {
             icpdaoDaoToken.connect(user3Account).mint(
                 [ownerAccount.address, user1Account.address, user2Account.address],
                 [1, 1, 1],
+                0,
+                firstMintTimestamp,
+                tickLowerMint,
+                tickUpperMint
+            )
+        ).to.be.revertedWith("NOT OWNER OR MANAGER");
+
+        await expect(
+            icpdaoDaoToken.connect(user3Account).mint(
+                [ownerAccount.address, user1Account.address, user2Account.address],
+                [1, 1, 1],
+                (await icpdaoDaoToken.mintAnchor()).lastTimestamp,
                 firstMintTimestamp,
                 tickLowerMint,
                 tickUpperMint
@@ -1167,6 +1181,7 @@ describe("IcpdaoDaoToken", () => {
         let tx5 = await icpdaoDaoToken.connect(user3Account).mint(
             [ownerAccount.address, user1Account.address, user2Account.address],
             [1, 1, 1],
+            (await icpdaoDaoToken.mintAnchor()).lastTimestamp,
             firstMintTimestamp,
             tickLowerMint,
             tickUpperMint

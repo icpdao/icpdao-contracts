@@ -228,6 +228,7 @@ contract DAOToken is IDAOToken, ERC20 {
     function mint(
         address[] memory _mintTokenAddressList,
         uint24[] memory _mintTokenAmountRatioList,
+        uint256 _startTimestamp,
         uint256 _endTimestamp,
         int24 _tickLower,
         int24 _tickUpper
@@ -236,6 +237,7 @@ contract DAOToken is IDAOToken, ERC20 {
             _mintTokenAddressList.length == _mintTokenAmountRatioList.length,
             'ICPDAO: MINT ADDRESS LENGTH != AMOUNT LENGTH'
         );
+        require(_startTimestamp == _anchor.lastTimestamp, 'ICPDAO: MINT START TIMESTAMP != LAST MINT TIMESTAMP');
         require(_endTimestamp <= block.timestamp, 'ICPDAO: MINT TIMESTAMP > BLOCK TIMESTAMP');
         require(_endTimestamp > _anchor.lastTimestamp, 'ICPDAO: MINT TIMESTAMP < LAST MINT TIMESTAMP');
         uint256 mintValue = _anchor.total(_endTimestamp);
@@ -265,7 +267,15 @@ contract DAOToken is IDAOToken, ERC20 {
                 temporaryAmount -= amount1;
             }
         }
-        emit Mint(_mintTokenAddressList, _mintTokenAmountRatioList, _endTimestamp, _tickLower, _tickUpper, mintValue);
+        emit Mint(
+            _mintTokenAddressList,
+            _mintTokenAmountRatioList,
+            _startTimestamp,
+            _endTimestamp,
+            _tickLower,
+            _tickUpper,
+            mintValue
+        );
     }
 
     function bonusWithdraw() external override {

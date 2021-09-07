@@ -21,6 +21,7 @@ interface IDAOToken is IDAOPermission, IDAOEvents {
     event Mint(
         address[] _mintTokenAddressList,
         uint24[] _mintTokenAmountRatioList,
+        uint256 _startTimestamp,
         uint256 _endTimestamp,
         int24 _tickLower,
         int24 _tickUpper,
@@ -75,6 +76,7 @@ interface IDAOToken is IDAOPermission, IDAOEvents {
     function mint(
         address[] memory _mintTokenAddressList,
         uint24[] memory _mintTokenAmountRatioList,
+        uint256 _startTimestamp,
         uint256 _endTimestamp,
         int24 _tickLower,
         int24 _tickUpper
