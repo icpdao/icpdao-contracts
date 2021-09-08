@@ -2,9 +2,8 @@
 pragma solidity >=0.8.4;
 
 import './IDAOPermission.sol';
-import './IDAOEvents.sol';
 
-interface IDAOToken is IDAOPermission, IDAOEvents {
+interface IDAOToken is IDAOPermission {
     event CreateLPPoolOrLinkLPPool(
         uint256 _baseTokenAmount,
         address _quoteTokenAddress,
