@@ -3,6 +3,8 @@ import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
 import '@nomiclabs/hardhat-etherscan'
 import 'hardhat-deploy'
+import "uniswap-v3-deploy-plugin"
+import 'hardhat-gas-reporter'
 
 const dotenv = require("dotenv")
 dotenv.config()
@@ -33,7 +35,8 @@ export default {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
     },
     goerli: {
-      url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      url: `https://eth-goerli.alchemyapi.io/v2/${process.env.ALCHEMYAPI_API_KEY}`,
+      accounts: [process.env.ROPSTEN_DEPLOY_ACCOUNT]
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,

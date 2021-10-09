@@ -71,7 +71,8 @@ contract DAOToken is IDAOToken, ERC20 {
             temporaryAmount = totalSupply().divMul(100, _lpRatio);
             _mint(address(this), temporaryAmount);
         }
-        _anchor.initialize(_mintArgs, 0);
+        // _anchor.initialize(_mintArgs, 1631203200);
+        _anchor.initialize(_mintArgs, block.timestamp);
         _owner = _ownerAddress;
         staking = _stakingAddress;
         lpRatio = _lpRatio;
