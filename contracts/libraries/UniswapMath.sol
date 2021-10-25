@@ -84,8 +84,8 @@ library UniswapMath {
             amount1Desired = _quoteTokenAmount;
         }
 
-        uint256 amount0Min = (amount0Desired * 9) / 10;
-        uint256 amount1Min = (amount1Desired * 9) / 10;
+        uint256 amount0Min = (amount0Desired * 0) / 10;
+        uint256 amount1Min = (amount1Desired * 0) / 10;
         uint256 deadline = block.timestamp + 60 * 60;
 
         params = INonfungiblePositionManager.MintParams({

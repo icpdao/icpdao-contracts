@@ -31,6 +31,8 @@ contract DAOToken is IDAOToken, ERC20 {
 
     address public immutable override staking;
     uint256 public immutable override lpRatio;
+    uint256 public immutable lpTotalAmount;
+    uint256 public lpCurrentAmount;
 
     address public override lpToken0;
     address public override lpToken1;
@@ -54,6 +56,7 @@ contract DAOToken is IDAOToken, ERC20 {
         address[] memory _genesisTokenAddressList,
         uint256[] memory _genesisTokenAmountList,
         uint256 _lpRatio,
+        uint256 _lpTotalAmount,
         address _stakingAddress,
         address payable _ownerAddress,
         MintMath.MintArgs memory _mintArgs,
@@ -69,6 +72,7 @@ contract DAOToken is IDAOToken, ERC20 {
         }
         if (totalSupply() > 0) {
             temporaryAmount = totalSupply().divMul(100, _lpRatio);
+            temporaryAmount = temporaryAmount < _lpTotalAmount ? temporaryAmount : _lpTotalAmount;
             _mint(address(this), temporaryAmount);
         }
         // _anchor.initialize(_mintArgs, 1631203200);
@@ -76,6 +80,8 @@ contract DAOToken is IDAOToken, ERC20 {
         _owner = _ownerAddress;
         staking = _stakingAddress;
         lpRatio = _lpRatio;
+        lpTotalAmount = _lpTotalAmount;
+        lpCurrentAmount = temporaryAmount;
         _WETH9 = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).WETH9();
     }
 
@@ -252,20 +258,25 @@ contract DAOToken is IDAOToken, ERC20 {
         }
 
         uint256 thisTemporaryAmount = mintValue.divMul(100, lpRatio);
-        _mint(address(this), thisTemporaryAmount);
-        temporaryAmount += thisTemporaryAmount;
+        uint256 lpLeftAmount = lpTotalAmount - lpCurrentAmount;
+        thisTemporaryAmount = thisTemporaryAmount < lpLeftAmount ? thisTemporaryAmount : lpLeftAmount;
+        if (thisTemporaryAmount > 0) {
+            _mint(address(this), thisTemporaryAmount);
+            temporaryAmount += thisTemporaryAmount;
+            lpCurrentAmount += thisTemporaryAmount;
 
-        if (lpPool != address(0)) {
-            (uint256 amount0, uint256 amount1) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mintToLPByTick(
-                lpPool,
-                thisTemporaryAmount,
-                _tickLower,
-                _tickUpper
-            );
-            if (lpToken0 == address(this)) {
-                temporaryAmount -= amount0;
-            } else {
-                temporaryAmount -= amount1;
+            if (lpPool != address(0)) {
+                (uint256 amount0, uint256 amount1) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mintToLPByTick(
+                    lpPool,
+                    thisTemporaryAmount,
+                    _tickLower,
+                    _tickUpper
+                );
+                if (lpToken0 == address(this)) {
+                    temporaryAmount -= amount0;
+                } else {
+                    temporaryAmount -= amount1;
+                }
             }
         }
         emit Mint(

@@ -6,7 +6,6 @@ import './interfaces/IDAOStaking.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import '@openzeppelin/contracts/utils/Context.sol';
-import 'hardhat/console.sol';
 
 contract DAOStaking is Context, IDAOStaking {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -118,16 +117,14 @@ contract DAOStaking is Context, IDAOStaking {
             }
         }
 
-        console.log('oldTokenList', oldTokenList.length());
+        // console.log('oldTokenList', oldTokenList.length());
         for (uint256 index = 0; index < _addTokenList.length; index++) {
             address token = _addTokenList[index];
             // 更新 pool 中 用户个人数据
             _addUserStackAmountWithToken(token);
             // 增加列表
-            bool result = oldTokenList.add(token);
-            console.log('add', token, result);
+            oldTokenList.add(token);
         }
-        console.log('oldTokenList', _addTokenList.length, oldTokenList.length());
     }
 
     function withdraw(uint256 _amount) external override {
@@ -203,7 +200,7 @@ contract DAOStaking is Context, IDAOStaking {
     }
 
     function bonus(address user) external view override returns (address[] memory tokens, uint256[] memory amounts) {
-        console.log('bonus', user);
+        // console.log('bonus', user);
         tokens = _tokenList(user);
         amounts = new uint256[](tokens.length);
 
@@ -218,15 +215,15 @@ contract DAOStaking is Context, IDAOStaking {
             if (unMintAmount > 0 && pool.userStakingIcpdAmount > 0) {
                 uint256 addMockAccTokenPerShare = (unMintAmount * 1e12) / pool.userStakingIcpdAmount;
                 mockAccTokenPerShare = pool.accPerShare + addMockAccTokenPerShare;
-                console.log('addMockAccTokenPerShare', addMockAccTokenPerShare);
+                // console.log('addMockAccTokenPerShare', addMockAccTokenPerShare);
             }
-            console.log('pool.accTokenPerShare', pool.accPerShare);
-            console.log('mockAccTokenPerShare', mockAccTokenPerShare);
-            console.log('unMintAmount', unMintAmount);
-            console.log('amount', _users[user].amount);
-            console.log('rewardDebt', _users[user].rewardDebt[token]);
+            // console.log('pool.accTokenPerShare', pool.accPerShare);
+            // console.log('mockAccTokenPerShare', mockAccTokenPerShare);
+            // console.log('unMintAmount', unMintAmount);
+            // console.log('amount', _users[user].amount);
+            // console.log('rewardDebt', _users[user].rewardDebt[token]);
             amounts[index] = (_users[user].amount * mockAccTokenPerShare) / 1e12 - _users[user].rewardDebt[token];
-            console.log('result', amounts[index]);
+            // console.log('result', amounts[index]);
         }
     }
 
@@ -287,11 +284,11 @@ contract DAOStaking is Context, IDAOStaking {
             pool.accPerShare += addAccPerShare;
             pool.blanceHaveMintAmount += (addAccPerShare * pool.userStakingIcpdAmount) / 1e12;
 
-            console.log('_mintWithToken addAccPerShare', addAccPerShare);
-            console.log('_mintWithToken pool.accPerShare', pool.accPerShare);
-            console.log('pool.userStakingIcpdAmount', pool.userStakingIcpdAmount);
-            console.log('_mintWithToken unMintAmount', unMintAmount);
-            console.log('_mintWithToken blanceHaveMintAmount', pool.blanceHaveMintAmount);
+            // console.log('_mintWithToken addAccPerShare', addAccPerShare);
+            // console.log('_mintWithToken pool.accPerShare', pool.accPerShare);
+            // console.log('pool.userStakingIcpdAmount', pool.userStakingIcpdAmount);
+            // console.log('_mintWithToken unMintAmount', unMintAmount);
+            // console.log('_mintWithToken blanceHaveMintAmount', pool.blanceHaveMintAmount);
         }
     }
 
@@ -307,10 +304,10 @@ contract DAOStaking is Context, IDAOStaking {
                 pool.blanceHaveMintAmount = pool.blanceHaveMintAmount - pending;
                 // pool.userPoolInfo[msg.sender].rewardDebt += pending;
                 _users[msg.sender].rewardDebt[token] += pending;
-                console.log('pending', pending);
-                console.log('_users[msg.sender].rewardDebt[token]', _users[msg.sender].rewardDebt[token]);
-                console.log('userAmount', userAmount);
-                console.log('accTokenPerShare', pool.accPerShare);
+                // console.log('pending', pending);
+                // console.log('_users[msg.sender].rewardDebt[token]', _users[msg.sender].rewardDebt[token]);
+                // console.log('userAmount', userAmount);
+                // console.log('accTokenPerShare', pool.accPerShare);
             }
         }
     }

@@ -132,7 +132,7 @@ const getCreatePoolAndPosition = (feeAmount: FeeAmount, baseTokenAddress: string
     return [mockPool, position];
 }
 
-describe("IcpdaoDaoToken", () => {
+describe("IcpdaoDaoTokenGas", () => {
     let nonfungiblePositionManagerAddress: string
     let weth9Address: string
     let swapRouterAddress: string
@@ -157,6 +157,7 @@ describe("IcpdaoDaoToken", () => {
     let firstMintTimestamp: number = startTimestamp + 86400 * 70;
     let lpToken0: string
     let lpToken1: string
+    let _lpTotalAmount: BigNumber = BigNumber.from(10).pow(18).mul(50000);
 
     before("init", async () => {
         nonfungiblePositionManagerAddress = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
@@ -193,6 +194,7 @@ describe("IcpdaoDaoToken", () => {
             [ownerAccount.address, user1Account.address, user2Account.address],
             [tokenCount, tokenCount, tokenCount],
             lpRadio,
+            _lpTotalAmount,
             stakingAddress,
             ownerAccount.address,
             {

@@ -6,6 +6,7 @@ import { abi as IDAOTokenABI} from "../artifacts/contracts/interfaces/IDAOToken.
 describe("DAOFactory", async () => {
     let mockStaking: ERC20Mock;
     let daoFactory: DAOFactory;
+    let _lpTotalAmount: number = 100000;
 
     before("deploy mock staking && factory", async () => {
         const [w1, w2, w3] = await ethers.getSigners();
@@ -26,6 +27,7 @@ describe("DAOFactory", async () => {
             [w1.address, w2.address, w3.address, w4.address, w5.address, w6.address],
             [100, 100, 100, 100, 100, 100],
             50,
+            _lpTotalAmount,
             w1.address,
             {
                 p: 90,
@@ -48,6 +50,7 @@ describe("DAOFactory", async () => {
                 [w1.address, w2.address, w3.address, w4.address, w5.address, w6.address],
                 [100, 100, 100, 100, 100, 100],
                 50,
+                _lpTotalAmount,
                 w1.address,
                 // [90, 1, 3, 1, 30, 0, 0],
                 {
@@ -78,6 +81,7 @@ describe("DAOFactory", async () => {
             [w1.address, w2.address, w3.address, w4.address, w5.address, w6.address],
             [100, 100, 100, 100, 100, 100],
             50,
+            _lpTotalAmount,
             w1.address,
             // [90, 1, 3, 1, 30, 0, 0],
             {
