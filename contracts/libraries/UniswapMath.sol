@@ -4,8 +4,6 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '../interfaces/external/INonfungiblePositionManager.sol';
 
-import 'hardhat/console.sol';
-
 library UniswapMath {
     int24 constant tick500 = -887270;
     int24 constant tick3000 = -887220;

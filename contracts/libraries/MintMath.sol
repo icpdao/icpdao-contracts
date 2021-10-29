@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-// import 'hardhat/console.sol';
-
 library MintMath {
     struct MintArgs {
         uint128 p;
@@ -150,10 +148,8 @@ library MintMath {
                 if (value < 0) value = 0;
                 lastValue = value;
                 lastCoefficient = coefficient;
-                // console.log("calculate");
             }
             result += value;
-            // console.log(i, lastCoefficient, lastValue, result);
         }
 
         last.lastTimestamp = endTimestamp;
