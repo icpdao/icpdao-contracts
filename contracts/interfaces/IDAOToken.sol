@@ -2,9 +2,8 @@
 pragma solidity >=0.8.4;
 
 import './IDAOPermission.sol';
-import './IDAOEvents.sol';
 
-interface IDAOToken is IDAOPermission, IDAOEvents {
+interface IDAOToken is IDAOPermission {
     event CreateLPPoolOrLinkLPPool(
         uint256 _baseTokenAmount,
         address _quoteTokenAddress,
@@ -21,6 +20,7 @@ interface IDAOToken is IDAOPermission, IDAOEvents {
     event Mint(
         address[] _mintTokenAddressList,
         uint24[] _mintTokenAmountRatioList,
+        uint256 _startTimestamp,
         uint256 _endTimestamp,
         int24 _tickLower,
         int24 _tickUpper,
@@ -38,21 +38,23 @@ interface IDAOToken is IDAOPermission, IDAOEvents {
     event RemoveManager(address _manager);
     event TransferOwnership(address _newOwner);
 
-    function staking() external returns (address);
+    function staking() external view returns (address);
 
-    function lpRatio() external returns (uint256);
+    function factory() external view returns (address);
 
-    function temporaryAmount() external returns (uint256);
+    function lpRatio() external view returns (uint256);
 
-    function lpToken0() external returns (address);
+    function temporaryAmount() external view returns (uint256);
 
-    function lpToken1() external returns (address);
+    function lpToken0() external view returns (address);
 
-    function lpPool() external returns (address);
+    function lpToken1() external view returns (address);
 
-    function UNISWAP_V3_POSITIONS() external returns (address);
+    function lpPool() external view returns (address);
 
-    function WETH9() external returns (address);
+    function UNISWAP_V3_POSITIONS() external view returns (address);
+
+    function WETH9() external view returns (address);
 
     function destruct() external;
 
@@ -75,6 +77,7 @@ interface IDAOToken is IDAOPermission, IDAOEvents {
     function mint(
         address[] memory _mintTokenAddressList,
         uint24[] memory _mintTokenAmountRatioList,
+        uint256 _startTimestamp,
         uint256 _endTimestamp,
         int24 _tickLower,
         int24 _tickUpper

@@ -4,8 +4,6 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '../interfaces/external/INonfungiblePositionManager.sol';
 
-import 'hardhat/console.sol';
-
 library UniswapMath {
     int24 constant tick500 = -887270;
     int24 constant tick3000 = -887220;
@@ -84,8 +82,8 @@ library UniswapMath {
             amount1Desired = _quoteTokenAmount;
         }
 
-        uint256 amount0Min = (amount0Desired * 9) / 10;
-        uint256 amount1Min = (amount1Desired * 9) / 10;
+        uint256 amount0Min = (amount0Desired * 0) / 10;
+        uint256 amount1Min = (amount1Desired * 0) / 10;
         uint256 deadline = block.timestamp + 60 * 60;
 
         params = INonfungiblePositionManager.MintParams({

@@ -16,18 +16,19 @@ interface IDAOStaking {
     event RemoveTokenList(address indexed user, address[] tokenList);
     event TransferOwnership(address _newOwner);
 
-    function totalStaking() external returns (uint256);
+    function totalStaking() external view returns (uint256);
 
-    function ICPD() external returns (address);
+    function ICPD() external view returns (address);
 
     function destruct() external;
 
-    function userInfo(address _user) external returns (uint256 amount, address[] memory tokens);
+    function userInfo(address _user) external view returns (uint256 amount, address[] memory tokens);
 
-    function userRewardDebt(address _user, address _token) external returns (uint256 rewardDebt);
+    function userRewardDebt(address _user, address _token) external view returns (uint256 rewardDebt);
 
     function poolInfo(address _token)
         external
+        view
         returns (
             uint256 accPerShare,
             uint256 userStakingIcpdAmount,

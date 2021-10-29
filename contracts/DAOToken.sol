@@ -4,11 +4,11 @@ pragma solidity >=0.8.4;
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 
 import './interfaces/external/INonfungiblePositionManager.sol';
 import './interfaces/external/IUniswapV3Factory.sol';
 import './interfaces/IDAOToken.sol';
+import './interfaces/IDAOFactory.sol';
 
 import './libraries/FullMath.sol';
 import './libraries/MintMath.sol';
@@ -29,8 +29,10 @@ contract DAOToken is IDAOToken, ERC20 {
     uint256 public override temporaryAmount;
     MintMath.Anchor private _anchor;
 
-    address public immutable override staking;
+    address public immutable override factory;
     uint256 public immutable override lpRatio;
+    uint256 public immutable lpTotalAmount;
+    uint256 public lpCurrentAmount;
 
     address public override lpToken0;
     address public override lpToken1;
@@ -54,7 +56,8 @@ contract DAOToken is IDAOToken, ERC20 {
         address[] memory _genesisTokenAddressList,
         uint256[] memory _genesisTokenAmountList,
         uint256 _lpRatio,
-        address _stakingAddress,
+        uint256 _lpTotalAmount,
+        address _factoryAddress,
         address payable _ownerAddress,
         MintMath.MintArgs memory _mintArgs,
         string memory _erc20Name,
@@ -69,17 +72,25 @@ contract DAOToken is IDAOToken, ERC20 {
         }
         if (totalSupply() > 0) {
             temporaryAmount = totalSupply().divMul(100, _lpRatio);
+            temporaryAmount = temporaryAmount < _lpTotalAmount ? temporaryAmount : _lpTotalAmount;
             _mint(address(this), temporaryAmount);
         }
+        // _anchor.initialize(_mintArgs, 1631203200);
         _anchor.initialize(_mintArgs, block.timestamp);
         _owner = _ownerAddress;
-        staking = _stakingAddress;
+        factory = _factoryAddress;
         lpRatio = _lpRatio;
+        lpTotalAmount = _lpTotalAmount;
+        lpCurrentAmount = temporaryAmount;
         _WETH9 = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).WETH9();
     }
 
     function owner() external view override returns (address) {
         return _owner;
+    }
+
+    function staking() external view override returns (address) {
+        return IDAOFactory(factory).staking();
     }
 
     function transferOwnership(address payable _newOwner) external override onlyOwner {
@@ -228,6 +239,7 @@ contract DAOToken is IDAOToken, ERC20 {
     function mint(
         address[] memory _mintTokenAddressList,
         uint24[] memory _mintTokenAmountRatioList,
+        uint256 _startTimestamp,
         uint256 _endTimestamp,
         int24 _tickLower,
         int24 _tickUpper
@@ -236,6 +248,7 @@ contract DAOToken is IDAOToken, ERC20 {
             _mintTokenAddressList.length == _mintTokenAmountRatioList.length,
             'ICPDAO: MINT ADDRESS LENGTH != AMOUNT LENGTH'
         );
+        require(_startTimestamp == _anchor.lastTimestamp, 'ICPDAO: MINT START TIMESTAMP != LAST MINT TIMESTAMP');
         require(_endTimestamp <= block.timestamp, 'ICPDAO: MINT TIMESTAMP > BLOCK TIMESTAMP');
         require(_endTimestamp > _anchor.lastTimestamp, 'ICPDAO: MINT TIMESTAMP < LAST MINT TIMESTAMP');
         uint256 mintValue = _anchor.total(_endTimestamp);
@@ -249,23 +262,36 @@ contract DAOToken is IDAOToken, ERC20 {
         }
 
         uint256 thisTemporaryAmount = mintValue.divMul(100, lpRatio);
-        _mint(address(this), thisTemporaryAmount);
-        temporaryAmount += thisTemporaryAmount;
+        uint256 lpLeftAmount = lpTotalAmount - lpCurrentAmount;
+        thisTemporaryAmount = thisTemporaryAmount < lpLeftAmount ? thisTemporaryAmount : lpLeftAmount;
+        if (thisTemporaryAmount > 0) {
+            _mint(address(this), thisTemporaryAmount);
+            temporaryAmount += thisTemporaryAmount;
+            lpCurrentAmount += thisTemporaryAmount;
 
-        if (lpPool != address(0)) {
-            (uint256 amount0, uint256 amount1) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mintToLPByTick(
-                lpPool,
-                thisTemporaryAmount,
-                _tickLower,
-                _tickUpper
-            );
-            if (lpToken0 == address(this)) {
-                temporaryAmount -= amount0;
-            } else {
-                temporaryAmount -= amount1;
+            if (lpPool != address(0)) {
+                (uint256 amount0, uint256 amount1) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mintToLPByTick(
+                    lpPool,
+                    thisTemporaryAmount,
+                    _tickLower,
+                    _tickUpper
+                );
+                if (lpToken0 == address(this)) {
+                    temporaryAmount -= amount0;
+                } else {
+                    temporaryAmount -= amount1;
+                }
             }
         }
-        emit Mint(_mintTokenAddressList, _mintTokenAmountRatioList, _endTimestamp, _tickLower, _tickUpper, mintValue);
+        emit Mint(
+            _mintTokenAddressList,
+            _mintTokenAmountRatioList,
+            _startTimestamp,
+            _endTimestamp,
+            _tickLower,
+            _tickUpper,
+            mintValue
+        );
     }
 
     function bonusWithdraw() external override {
@@ -318,6 +344,8 @@ contract DAOToken is IDAOToken, ERC20 {
     }
 
     function _bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) private {
+        address _staking = IDAOFactory(factory).staking();
+        require(_staking != address(0), 'ICPDAO: NOT _staking');
         uint256 token0TotalAmount;
         uint256 token1TotalAmount;
 
@@ -336,14 +364,14 @@ contract DAOToken is IDAOToken, ERC20 {
         if (token0TotalAmount > 0) {
             uint256 bonusToken0TotalAmount = token0TotalAmount / 100;
             uint256 stackingToken0TotalAmount = token0TotalAmount - bonusToken0TotalAmount;
-            IERC20(address(lpToken0)).safeTransfer(staking, stackingToken0TotalAmount);
+            IERC20(address(lpToken0)).safeTransfer(_staking, stackingToken0TotalAmount);
             IERC20(address(lpToken0)).safeTransfer(_msgSender(), bonusToken0TotalAmount);
         }
 
         if (token1TotalAmount > 0) {
             uint256 bonusToken1TotalAmount = token1TotalAmount / 100;
             uint256 stackingToken1TotalAmount = token1TotalAmount - bonusToken1TotalAmount;
-            IERC20(address(lpToken1)).safeTransfer(staking, stackingToken1TotalAmount);
+            IERC20(address(lpToken1)).safeTransfer(_staking, stackingToken1TotalAmount);
             IERC20(address(lpToken1)).safeTransfer(_msgSender(), bonusToken1TotalAmount);
         }
 

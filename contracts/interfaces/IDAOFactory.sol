@@ -11,6 +11,7 @@ interface IDAOFactory {
         address[] _genesisTokenAddressList,
         uint256[] _genesisTokenAmountList,
         uint256 _lpRatio,
+        uint256 _lpTotalAmount,
         address _ownerAddress,
         MintMath.MintArgs _mintArgs,
         string _erc20Name,
@@ -27,11 +28,14 @@ interface IDAOFactory {
 
     function staking() external view returns (address);
 
+    function setStaking(address _staking) external;
+
     function deploy(
         string memory _daoID,
         address[] memory _genesisTokenAddressList,
         uint256[] memory _genesisTokenAmountList,
         uint256 _lpRatio,
+        uint256 _lpTotalAmount,
         address payable _ownerAddress,
         MintMath.MintArgs memory _mintArgs,
         string memory _erc20Name,

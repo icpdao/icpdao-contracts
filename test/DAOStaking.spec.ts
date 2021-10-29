@@ -141,6 +141,7 @@ describe("IcpdaoStaking", () => {
     let startTimestamp: number;
     let deployTimestamp: number;
     let firstMintTimestamp: number;
+    let _lpTotalAmount: number = 100000;
 
     it("test", async () => {
         wallets = await (ethers as any).getSigners();
@@ -179,8 +180,7 @@ describe("IcpdaoStaking", () => {
         // deploy DAOFactory
         const IcpdaoDaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         icpdaoDaoTokenFactory = (await IcpdaoDaoTokenFactoryFactory.deploy(
-            ownerAccount.address,
-            icpdaoStaking.address
+            ownerAccount.address
         )) as DAOFactory;
 
         // deploy icpdaotoken
@@ -199,6 +199,7 @@ describe("IcpdaoStaking", () => {
             [ownerAccount.address],
             [icpdaoTokenTokenCount],
             101,
+            _lpTotalAmount,
             ownerAccount.address,
             {
                 p: 20,
@@ -223,6 +224,7 @@ describe("IcpdaoStaking", () => {
             [ownerAccount.address],
             [tokenACount],
             101,
+            _lpTotalAmount,
             ownerAccount.address,
             {
                 p: 20,
@@ -247,6 +249,7 @@ describe("IcpdaoStaking", () => {
             [ownerAccount.address],
             [tokenBCount],
             101,
+            _lpTotalAmount,
             ownerAccount.address,
             {
                 p: 20,

@@ -153,6 +153,7 @@ describe("IcpdaoDaoToken", () => {
     let firstMintTimestamp: number = startTimestamp + 86400 * 40;
     let lpToken0: string
     let lpToken1: string
+    let _lpTotalAmount: BigNumber = BigNumber.from(10).pow(18).mul(50000);
 
     before("init", async () => {
         nonfungiblePositionManagerAddress = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
@@ -175,7 +176,7 @@ describe("IcpdaoDaoToken", () => {
         // deploy IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
         const DaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         const daoTokenFactory = (await DaoTokenFactoryFactory.deploy(
-            deployAccount.address, stakingAddress
+            deployAccount.address
         )) as DAOFactory;
         // deploy helloToken
         const ERC20MockFactory: ContractFactory = new ERC20Mock__factory(deployAccount);
@@ -190,6 +191,7 @@ describe("IcpdaoDaoToken", () => {
             [ownerAccount.address, user1Account.address, user2Account.address],
             [tokenCount, tokenCount, tokenCount],
             101,
+            _lpTotalAmount,
             ownerAccount.address,
             {
                 p: 20,
@@ -214,7 +216,7 @@ describe("IcpdaoDaoToken", () => {
 
         expect(
             await icpdaoDaoToken.staking()
-        ).to.eq(stakingAddress);
+        ).to.eq("0x0000000000000000000000000000000000000000");
 
         expect(
             await icpdaoDaoToken.lpRatio()
@@ -386,19 +388,24 @@ describe("IcpdaoDaoToken", () => {
     })
 
     it("create pool 2", async () => {
+        const DaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
+        const daoTokenFactory = (await DaoTokenFactoryFactory.deploy(
+            deployAccount.address
+        )) as DAOFactory;
+
         // deploy icpdaoDaoToken
         let tokenCount = BigNumber.from(10).pow(18).mul(10000);
-        const IcpdaoDaoTokenFactory: ContractFactory = new DAOToken__factory(deployAccount);
 
         await ethers.provider.send("evm_setNextBlockTimestamp", [deployTimestamp]);
 
         const p = BigNumber.from(10).pow(18).mul(200);
         const lpRadio = 101;
-        const icpdaoDaoToken = (await IcpdaoDaoTokenFactory.deploy(
+        await (await daoTokenFactory.deploy(
+            "1",
             [ownerAccount.address, user1Account.address, user2Account.address],
             [tokenCount, tokenCount, tokenCount],
             lpRadio,
-            stakingAddress,
+            _lpTotalAmount,
             ownerAccount.address,
             {
                 p: p,
@@ -411,7 +418,10 @@ describe("IcpdaoDaoToken", () => {
             },
             "icp-token",
             "ICP"
-        )) as DAOToken;
+        )).wait();
+
+        const icpdaoDaoTokenAddress = await daoTokenFactory.tokens('1')
+        const icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
 
@@ -562,6 +572,7 @@ describe("IcpdaoDaoToken", () => {
         let tx5 = await icpdaoDaoToken.connect(ownerAccount).mint(
             [ownerAccount.address, user1Account.address, user2Account.address],
             [1, 1, 1],
+            (await icpdaoDaoToken.mintAnchor()).lastTimestamp,
             firstMintTimestamp,
             tickLowerMint,
             tickUpperMint
@@ -654,6 +665,12 @@ describe("IcpdaoDaoToken", () => {
             await icpdaoDaoToken.temporaryAmount()
         ).to.eq(icpHaveIcpBeforeBonus);
 
+        await expect(
+            icpdaoDaoToken.connect(ownerAccount).bonusWithdraw()
+        ).to.be.revertedWith("ICPDAO: NOT _staking");
+
+        await (await daoTokenFactory.connect(deployAccount).setStaking(stakingAddress)).wait();
+
         let tx7 = await icpdaoDaoToken.connect(ownerAccount).bonusWithdraw();
         const tx7Done = await tx7.wait();
 
@@ -683,8 +700,8 @@ describe("IcpdaoDaoToken", () => {
 
         expect(ownerAccountHaveEthAdd).to.equal(BigNumber.from("15000000000000"));
         expect(ownerAccountHaveIcpAdd).to.equal(BigNumber.from("14999999999999"));
-        expect(stakingHaveEthAdd).to.equal(BigNumber.from("1485000000000001"));
-        expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1485000000000000"));
+        expect(stakingHaveEthAdd).to.equal(BigNumber.from("1485000000000003"));
+        expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1484999999999999"));
 
         (await icpdaoDaoToken.connect(ownerAccount).transfer(icpdaoDaoToken.address, 100)).wait();
 
@@ -694,6 +711,11 @@ describe("IcpdaoDaoToken", () => {
     })
 
     it('bonusWithdrawByTokenIdList', async () => {
+        const DaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
+        const daoTokenFactory = (await DaoTokenFactoryFactory.deploy(
+            deployAccount.address
+        )) as DAOFactory;
+
         const blockNumber = await ethers.provider.getBlockNumber();
         const block = await ethers.provider.getBlock(blockNumber);
 
@@ -703,17 +725,17 @@ describe("IcpdaoDaoToken", () => {
 
         // deploy icpdaoDaoToken
         let tokenCount = BigNumber.from(10).pow(18).mul(10000);
-        const IcpdaoDaoTokenFactory: ContractFactory = new DAOToken__factory(deployAccount);
 
         await ethers.provider.send("evm_setNextBlockTimestamp", [deployTimestamp]);
 
         const p = BigNumber.from(10).pow(18).mul(200);
         const lpRadio = 101;
-        const icpdaoDaoToken = (await IcpdaoDaoTokenFactory.deploy(
+        await (await daoTokenFactory.deploy(
+            "1",
             [ownerAccount.address, user1Account.address, user2Account.address],
             [tokenCount, tokenCount, tokenCount],
             lpRadio,
-            stakingAddress,
+            _lpTotalAmount,
             ownerAccount.address,
             {
                 p: p,
@@ -726,7 +748,10 @@ describe("IcpdaoDaoToken", () => {
             },
             "icp-token",
             "ICP"
-        )) as DAOToken;
+        )).wait();
+
+        const icpdaoDaoTokenAddress = await daoTokenFactory.tokens('1')
+        const icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         const [mockPool, position] = getCreatePoolAndPosition(
             FeeAmount.LOW,
@@ -802,6 +827,7 @@ describe("IcpdaoDaoToken", () => {
         let tx5 = await icpdaoDaoToken.connect(ownerAccount).mint(
             [ownerAccount.address, user1Account.address, user2Account.address],
             [1, 1, 1],
+            (await icpdaoDaoToken.mintAnchor()).lastTimestamp,
             firstMintTimestamp,
             tickLowerMint,
             tickUpperMint
@@ -869,6 +895,12 @@ describe("IcpdaoDaoToken", () => {
             tokenIdList.push(id);
         }
 
+        await expect(
+            icpdaoDaoToken.connect(ownerAccount).bonusWithdrawByTokenIdList(tokenIdList)
+        ).to.be.revertedWith("ICPDAO: NOT _staking");
+
+        await (await daoTokenFactory.connect(deployAccount).setStaking(stakingAddress)).wait();
+
         let tx7 = await icpdaoDaoToken.connect(ownerAccount).bonusWithdrawByTokenIdList(tokenIdList);
         const tx7Done = await tx7.wait();
 
@@ -891,8 +923,8 @@ describe("IcpdaoDaoToken", () => {
 
         expect(ownerAccountHaveEthAdd).to.equal(BigNumber.from("15000000000000"));
         expect(ownerAccountHaveIcpAdd).to.equal(BigNumber.from("14999999999999"));
-        expect(stakingHaveEthAdd).to.equal(BigNumber.from("1485000000000001"));
-        expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1485000000000000"));
+        expect(stakingHaveEthAdd).to.equal(BigNumber.from("1485000000000003"));
+        expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1484999999999999"));
 
     })
 
@@ -900,7 +932,7 @@ describe("IcpdaoDaoToken", () => {
         // deploy IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
         const IcpdaoDaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         const icpdaoDaoTokenFactory = (await IcpdaoDaoTokenFactoryFactory.deploy(
-            deployAccount.address, stakingAddress
+            deployAccount.address
         )) as DAOFactory;
 
         // deploy icpdaoDaoToken
@@ -910,6 +942,7 @@ describe("IcpdaoDaoToken", () => {
             [ownerAccount.address, user1Account.address, user2Account.address],
             [tokenCount, tokenCount, tokenCount],
             101,
+            _lpTotalAmount,
             ownerAccount.address,
             {
                 p: 20,
@@ -936,6 +969,7 @@ describe("IcpdaoDaoToken", () => {
                 [ownerAccount.address, user1Account.address, user2Account.address],
                 [tokenCount, tokenCount, tokenCount],
                 101,
+                _lpTotalAmount,
                 user1Account.address,
                 {
                     p: 20,
@@ -957,6 +991,7 @@ describe("IcpdaoDaoToken", () => {
             [ownerAccount.address, user1Account.address, user2Account.address],
             [tokenCount, tokenCount, tokenCount],
             101,
+            _lpTotalAmount,
             ownerAccount.address,
             {
                 p: 20,
@@ -982,6 +1017,7 @@ describe("IcpdaoDaoToken", () => {
                 [ownerAccount.address, user1Account.address, user2Account.address],
                 [tokenCount, tokenCount, tokenCount],
                 101,
+                _lpTotalAmount,
                 user1Account.address,
                 {
                     p: 20,
@@ -999,9 +1035,13 @@ describe("IcpdaoDaoToken", () => {
     })
 
     it("test manager and owner", async () => {
+        const IcpdaoDaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
+        const icpdaoDaoTokenFactory = (await IcpdaoDaoTokenFactoryFactory.deploy(
+            deployAccount.address
+        )) as DAOFactory;
+
         // deploy icpdaoDaoToken
         let tokenCount = BigNumber.from(10).pow(18).mul(10000);
-        const IcpdaoDaoTokenFactory: ContractFactory = new DAOToken__factory(deployAccount);
 
         const blockNumber = await ethers.provider.getBlockNumber();
         const block = await ethers.provider.getBlock(blockNumber);
@@ -1014,11 +1054,12 @@ describe("IcpdaoDaoToken", () => {
 
         const p = BigNumber.from(10).pow(18).mul(200);
         const lpRadio = 101;
-        const icpdaoDaoToken = (await IcpdaoDaoTokenFactory.deploy(
+        await (await icpdaoDaoTokenFactory.deploy(
+            "1",
             [ownerAccount.address, user1Account.address, user2Account.address],
             [tokenCount, tokenCount, tokenCount],
             lpRadio,
-            stakingAddress,
+            _lpTotalAmount,
             ownerAccount.address,
             {
                 p: p,
@@ -1031,7 +1072,10 @@ describe("IcpdaoDaoToken", () => {
             },
             "icp-token",
             "ICP"
-        )) as DAOToken;
+        )).wait();
+
+        const icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
+        const icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
 
@@ -1156,6 +1200,18 @@ describe("IcpdaoDaoToken", () => {
             icpdaoDaoToken.connect(user3Account).mint(
                 [ownerAccount.address, user1Account.address, user2Account.address],
                 [1, 1, 1],
+                0,
+                firstMintTimestamp,
+                tickLowerMint,
+                tickUpperMint
+            )
+        ).to.be.revertedWith("NOT OWNER OR MANAGER");
+
+        await expect(
+            icpdaoDaoToken.connect(user3Account).mint(
+                [ownerAccount.address, user1Account.address, user2Account.address],
+                [1, 1, 1],
+                (await icpdaoDaoToken.mintAnchor()).lastTimestamp,
                 firstMintTimestamp,
                 tickLowerMint,
                 tickUpperMint
@@ -1167,6 +1223,7 @@ describe("IcpdaoDaoToken", () => {
         let tx5 = await icpdaoDaoToken.connect(user3Account).mint(
             [ownerAccount.address, user1Account.address, user2Account.address],
             [1, 1, 1],
+            (await icpdaoDaoToken.mintAnchor()).lastTimestamp,
             firstMintTimestamp,
             tickLowerMint,
             tickUpperMint
@@ -1211,6 +1268,8 @@ describe("IcpdaoDaoToken", () => {
             )
             const tx7Done = await tx7.wait();
         }
+
+        await (await icpdaoDaoTokenFactory.connect(deployAccount).setStaking(stakingAddress)).wait();
 
         let tx7 = await icpdaoDaoToken.connect(user4Account).bonusWithdraw();
         const tx7Done = await tx7.wait();
@@ -1282,6 +1341,7 @@ describe("IcpdaoDaoToken", () => {
             [ownerAccount.address, user1Account.address, user2Account.address],
             [tokenCount, tokenCount, tokenCount],
             lpRadio,
+            _lpTotalAmount,
             stakingAddress,
             ownerAccount.address,
             {

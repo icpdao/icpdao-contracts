@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
-import "hardhat/console.sol";
 
 library MintMath {
-
     struct MintArgs {
         uint128 p;
         uint16 aNumerator;
@@ -70,7 +68,7 @@ library MintMath {
         // Factor powers of two out of denominator
         // Compute largest power of two divisor of denominator.
         // Always >= 1.
-        uint256 twos = (0-denominator) & denominator;
+        uint256 twos = (0 - denominator) & denominator;
         // Divide denominator by power of two
         assembly {
             denominator := div(denominator, twos)
@@ -120,14 +118,11 @@ library MintMath {
         uint256 time
     ) internal {
         last.args = args;
-        last.lastTimestamp = time / 86400 * 86400;
+        last.lastTimestamp = (time / 86400) * 86400;
         last.n = 0;
     }
 
-    function total(
-        Anchor storage last,
-        uint256 endTimestamp
-    ) internal returns (uint256) {
+    function total(Anchor storage last, uint256 endTimestamp) internal returns (uint256) {
         uint256 d = last.args.d;
         uint256 p = last.args.p;
         uint256 an = last.args.aNumerator;
@@ -137,7 +132,7 @@ library MintMath {
         uint256 c = last.args.c;
 
         uint256 beginN = last.n + 1;
-        uint256 n = last.n + (endTimestamp / 86400 * 86400 - last.lastTimestamp) / 86400;
+        uint256 n = last.n + ((endTimestamp / 86400) * 86400 - last.lastTimestamp) / 86400;
 
         uint256 result;
         uint256 lastCoefficient;
@@ -148,15 +143,13 @@ library MintMath {
             uint256 value = lastValue;
             if (coefficient != lastCoefficient || i == beginN) {
                 value = coefficient + c;
-                value = (((an ** value ) * p) * 1e12) / (ad ** value);
+                value = (((an**value) * p) * 1e12) / (ad**value);
                 value += d * 1e12;
                 if (value < 0) value = 0;
                 lastValue = value;
                 lastCoefficient = coefficient;
-                console.log("calculate");
             }
             result += value;
-            console.log(i, lastCoefficient, lastValue, result);
         }
 
         last.lastTimestamp = endTimestamp;
