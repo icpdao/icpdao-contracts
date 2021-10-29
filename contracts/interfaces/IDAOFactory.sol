@@ -28,6 +28,8 @@ interface IDAOFactory {
 
     function staking() external view returns (address);
 
+    function setStaking(address _staking) external;
+
     function deploy(
         string memory _daoID,
         address[] memory _genesisTokenAddressList,

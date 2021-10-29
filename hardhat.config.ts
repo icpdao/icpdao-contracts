@@ -18,7 +18,7 @@ dotenv.config()
 export default {
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: false,
+      allowUnlimitedContractSize: true,
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMYAPI_API_KEY}`,
         blockNumber: 12811541
@@ -58,7 +58,7 @@ export default {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 575,
+        runs: 175,
       }
     },
   },

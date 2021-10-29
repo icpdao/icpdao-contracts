@@ -177,7 +177,7 @@ describe("IcpdaoDAOTokenLpTotalAmount", () => {
         // deploy IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
         const DaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         const daoTokenFactory = (await DaoTokenFactoryFactory.deploy(
-            deployAccount.address, stakingAddress
+            deployAccount.address
         )) as DAOFactory;
         // deploy helloToken
         const ERC20MockFactory: ContractFactory = new ERC20Mock__factory(deployAccount);
@@ -226,10 +226,6 @@ describe("IcpdaoDAOTokenLpTotalAmount", () => {
         expect(
             await icpdaoDaoToken.WETH9()
         ).to.eq(weth9.address);
-
-        expect(
-            await icpdaoDaoToken.staking()
-        ).to.eq(stakingAddress);
 
         expect(
             await icpdaoDaoToken.lpRatio()

@@ -8,20 +8,21 @@ describe("DAOFactory", async () => {
     let daoFactory: DAOFactory;
     let _lpTotalAmount: number = 100000;
 
-    before("deploy mock staking && factory", async () => {
-        const [w1, w2, w3] = await ethers.getSigners();
+    it("create one dao && re deploy", async () => {
+        const [w1, w2, w3, w4, w5, w6] = await ethers.getSigners();
         const erc20Mock = await ethers.getContractFactory('ERC20Mock');
         mockStaking = (await erc20Mock.deploy([w1.address, w2.address, w3.address], [100, 100, 100], "Mock", "MOCK")) as ERC20Mock;
         const daoFactory_ = await ethers.getContractFactory('DAOFactory');
-        daoFactory = (await daoFactory_.deploy(w1.address, mockStaking.address)) as DAOFactory;
-    })
+        daoFactory = (await daoFactory_.deploy(w1.address)) as DAOFactory;
 
-    it("create one dao && re deploy", async () => {
         expect(
             await daoFactory.staking()
-        ).to.eq(mockStaking.address)
+        ).to.eq('0x0000000000000000000000000000000000000000')
 
-        const [w1, w2, w3, w4, w5, w6] = await ethers.getSigners();
+        expect(
+            await daoFactory.owner()
+        ).to.eq(w1.address)
+
         const doDeploy = await daoFactory.connect(w2).deploy(
             "mock_dao_id_1",
             [w1.address, w2.address, w3.address, w4.address, w5.address, w6.address],
@@ -42,10 +43,9 @@ describe("DAOFactory", async () => {
             "MockDAO1",
             "MD1"
         );
-        console.log("deploy gas limit: ", doDeploy.gasLimit?.toNumber());
 
-        try {
-            const reDeploy = await daoFactory.connect(w2).deploy(
+        await expect(
+            daoFactory.connect(w2).deploy(
                 "mock_dao_id_1",
                 [w1.address, w2.address, w3.address, w4.address, w5.address, w6.address],
                 [100, 100, 100, 100, 100, 100],
@@ -64,14 +64,13 @@ describe("DAOFactory", async () => {
                 },
                 "MockDAO1",
                 "MD1"
-            );
-            expect(1).to.be.equal(2);
-        } catch (e) {
-            expect(e.message).to.be.contain("ICPDAO: NOT OWNER DO REDEPLOY");
-        }
+            )
+        ).to.be.revertedWith("ICPDAO: NOT OWNER DO REDEPLOY");
+
+        let newTokenAddress = await daoFactory.tokens("mock_dao_id_1");
         let newToken = await ethers.getContractAt(
             IDAOTokenABI,
-            await daoFactory.tokens("mock_dao_id_1"),
+            newTokenAddress,
         );
         await newToken.connect(w1).addManager(w2.address);
         expect(await newToken.isManager(w2.address)).to.be.true;
@@ -82,7 +81,7 @@ describe("DAOFactory", async () => {
             [100, 100, 100, 100, 100, 100],
             50,
             _lpTotalAmount,
-            w1.address,
+            w3.address,
             // [90, 1, 3, 1, 30, 0, 0],
             {
                 p: 90,
@@ -96,7 +95,51 @@ describe("DAOFactory", async () => {
             "MockDAO1",
             "MD1"
         );
-        console.log("redeploy gas limit: ", reDeploy.gasLimit?.toNumber());
+        let newTokenAddress2 = await daoFactory.tokens("mock_dao_id_1");
+        let newToken2 = await ethers.getContractAt(
+            IDAOTokenABI,
+            newTokenAddress2,
+        );
+        expect(newToken2.address).not.eq(newToken.address);
+
+        expect(
+            await newToken2.factory()
+        ).to.eq(daoFactory.address)
+
+        expect(
+            await newToken2.owner()
+        ).to.eq(w3.address)
+
+        expect(
+            await newToken2.staking()
+        ).to.eq('0x0000000000000000000000000000000000000000')
+
+        expect(
+            await newToken.staking()
+        ).to.eq('0x0000000000000000000000000000000000000000')
+
+        await expect(
+            daoFactory.connect(w2).setStaking(mockStaking.address)
+        ).to.be.revertedWith("ICPDAO: ONLY OWNER CAN CALL");
+
+        await (await daoFactory.connect(w1).setStaking(mockStaking.address)).wait();
+
+        expect(
+            await newToken2.staking()
+        ).to.eq(mockStaking.address)
+
+        expect(
+            await newToken.staking()
+        ).to.eq(mockStaking.address)
+
+        expect(
+            await daoFactory.staking()
+        ).to.eq(mockStaking.address)
+
+        await expect(
+            daoFactory.connect(w1).setStaking(mockStaking.address)
+        ).to.be.revertedWith("ICPDAO: _staking ADDRESS EXITST");
+
     })
 
     it("transferOwnership", async () => {
@@ -104,7 +147,7 @@ describe("DAOFactory", async () => {
         const erc20Mock = await ethers.getContractFactory('ERC20Mock');
         const _mockStaking = (await erc20Mock.deploy([w1.address, w2.address, w3.address], [100, 100, 100], "Mock", "MOCK")) as ERC20Mock;
         const daoFactory_ = await ethers.getContractFactory('DAOFactory');
-        const _daoFactory = (await daoFactory_.deploy(w1.address, _mockStaking.address)) as DAOFactory;
+        const _daoFactory = (await daoFactory_.deploy(w1.address)) as DAOFactory;
 
         expect(
             await _daoFactory.owner()
@@ -128,7 +171,7 @@ describe("DAOFactory", async () => {
         const erc20Mock = await ethers.getContractFactory('ERC20Mock');
         const _mockStaking = (await erc20Mock.deploy([w1.address, w2.address, w3.address], [100, 100, 100], "Mock", "MOCK")) as ERC20Mock;
         const daoFactory_ = await ethers.getContractFactory('DAOFactory');
-        const _daoFactory = (await daoFactory_.deploy(w1.address, _mockStaking.address)) as DAOFactory;
+        const _daoFactory = (await daoFactory_.deploy(w1.address)) as DAOFactory;
 
         await expect(
             _daoFactory.connect(w2).destruct()

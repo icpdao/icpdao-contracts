@@ -8,6 +8,7 @@ import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import './interfaces/external/INonfungiblePositionManager.sol';
 import './interfaces/external/IUniswapV3Factory.sol';
 import './interfaces/IDAOToken.sol';
+import './interfaces/IDAOFactory.sol';
 
 import './libraries/FullMath.sol';
 import './libraries/MintMath.sol';
@@ -28,7 +29,7 @@ contract DAOToken is IDAOToken, ERC20 {
     uint256 public override temporaryAmount;
     MintMath.Anchor private _anchor;
 
-    address public immutable override staking;
+    address public immutable override factory;
     uint256 public immutable override lpRatio;
     uint256 public immutable lpTotalAmount;
     uint256 public lpCurrentAmount;
@@ -56,7 +57,7 @@ contract DAOToken is IDAOToken, ERC20 {
         uint256[] memory _genesisTokenAmountList,
         uint256 _lpRatio,
         uint256 _lpTotalAmount,
-        address _stakingAddress,
+        address _factoryAddress,
         address payable _ownerAddress,
         MintMath.MintArgs memory _mintArgs,
         string memory _erc20Name,
@@ -77,7 +78,7 @@ contract DAOToken is IDAOToken, ERC20 {
         // _anchor.initialize(_mintArgs, 1631203200);
         _anchor.initialize(_mintArgs, block.timestamp);
         _owner = _ownerAddress;
-        staking = _stakingAddress;
+        factory = _factoryAddress;
         lpRatio = _lpRatio;
         lpTotalAmount = _lpTotalAmount;
         lpCurrentAmount = temporaryAmount;
@@ -86,6 +87,10 @@ contract DAOToken is IDAOToken, ERC20 {
 
     function owner() external view override returns (address) {
         return _owner;
+    }
+
+    function staking() external view override returns (address) {
+        return IDAOFactory(factory).staking();
     }
 
     function transferOwnership(address payable _newOwner) external override onlyOwner {
@@ -339,6 +344,8 @@ contract DAOToken is IDAOToken, ERC20 {
     }
 
     function _bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) private {
+        address _staking = IDAOFactory(factory).staking();
+        require(_staking != address(0), 'ICPDAO: NOT _staking');
         uint256 token0TotalAmount;
         uint256 token1TotalAmount;
 
@@ -357,14 +364,14 @@ contract DAOToken is IDAOToken, ERC20 {
         if (token0TotalAmount > 0) {
             uint256 bonusToken0TotalAmount = token0TotalAmount / 100;
             uint256 stackingToken0TotalAmount = token0TotalAmount - bonusToken0TotalAmount;
-            IERC20(address(lpToken0)).safeTransfer(staking, stackingToken0TotalAmount);
+            IERC20(address(lpToken0)).safeTransfer(_staking, stackingToken0TotalAmount);
             IERC20(address(lpToken0)).safeTransfer(_msgSender(), bonusToken0TotalAmount);
         }
 
         if (token1TotalAmount > 0) {
             uint256 bonusToken1TotalAmount = token1TotalAmount / 100;
             uint256 stackingToken1TotalAmount = token1TotalAmount - bonusToken1TotalAmount;
-            IERC20(address(lpToken1)).safeTransfer(staking, stackingToken1TotalAmount);
+            IERC20(address(lpToken1)).safeTransfer(_staking, stackingToken1TotalAmount);
             IERC20(address(lpToken1)).safeTransfer(_msgSender(), bonusToken1TotalAmount);
         }
 

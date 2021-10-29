@@ -13,16 +13,22 @@ contract DAOFactory is Context, IDAOFactory {
 
     mapping(string => address) public override tokens;
 
-    address public immutable override staking;
+    address public override staking;
 
-    constructor(address payable _ownerAddress, address _stakingAddress) {
+    constructor(address payable _ownerAddress) {
         _owner = _ownerAddress;
-        staking = _stakingAddress;
     }
 
     function destruct() external override {
         require(_owner == _msgSender(), 'ICPDAO: ONLY OWNER CAN CALL DESTRUCT');
         selfdestruct(_owner);
+    }
+
+    function setStaking(address _staking) external override {
+        require(_owner == _msgSender(), 'ICPDAO: ONLY OWNER CAN CALL');
+        require(_staking != address(0), 'ICPDAO: _staking INVALID');
+        require(staking == address(0), 'ICPDAO: _staking ADDRESS EXITST');
+        staking = _staking;
     }
 
     function deploy(
@@ -46,7 +52,7 @@ contract DAOFactory is Context, IDAOFactory {
                 _genesisTokenAmountList,
                 _lpRatio,
                 _lpTotalAmount,
-                staking,
+                address(this),
                 _ownerAddress,
                 _mintArgs,
                 _erc20Name,

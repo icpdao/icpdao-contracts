@@ -180,8 +180,7 @@ describe("IcpdaoStaking", () => {
         // deploy DAOFactory
         const IcpdaoDaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         icpdaoDaoTokenFactory = (await IcpdaoDaoTokenFactoryFactory.deploy(
-            ownerAccount.address,
-            icpdaoStaking.address
+            ownerAccount.address
         )) as DAOFactory;
 
         // deploy icpdaotoken

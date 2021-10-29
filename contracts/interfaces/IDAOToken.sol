@@ -38,21 +38,23 @@ interface IDAOToken is IDAOPermission {
     event RemoveManager(address _manager);
     event TransferOwnership(address _newOwner);
 
-    function staking() external returns (address);
+    function staking() external view returns (address);
 
-    function lpRatio() external returns (uint256);
+    function factory() external view returns (address);
 
-    function temporaryAmount() external returns (uint256);
+    function lpRatio() external view returns (uint256);
 
-    function lpToken0() external returns (address);
+    function temporaryAmount() external view returns (uint256);
 
-    function lpToken1() external returns (address);
+    function lpToken0() external view returns (address);
 
-    function lpPool() external returns (address);
+    function lpToken1() external view returns (address);
 
-    function UNISWAP_V3_POSITIONS() external returns (address);
+    function lpPool() external view returns (address);
 
-    function WETH9() external returns (address);
+    function UNISWAP_V3_POSITIONS() external view returns (address);
+
+    function WETH9() external view returns (address);
 
     function destruct() external;
 
