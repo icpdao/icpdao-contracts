@@ -346,11 +346,11 @@ contract DAOToken is IDAOToken, ERC20 {
     function _bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) private {
         address _staking = IDAOFactory(factory).staking();
         require(_staking != address(0), 'ICPDAO: NOT _staking');
-        uint256 token0TotalAmount;
-        uint256 token1TotalAmount;
+        uint256 token0TotalAmount = 0;
+        uint256 token1TotalAmount = 0;
 
-        uint256 token0Add;
-        uint256 token1Add;
+        uint256 token0Add = 0;
+        uint256 token1Add = 0;
         for (uint256 index = 0; index < tokenIdList.length; index++) {
             (token0Add, token1Add) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).bonusWithdrawByTokenId(
                 tokenIdList[index],

@@ -134,9 +134,9 @@ library MintMath {
         uint256 beginN = last.n + 1;
         uint256 n = last.n + ((endTimestamp / 86400) * 86400 - last.lastTimestamp) / 86400;
 
-        uint256 result;
-        uint256 lastCoefficient;
-        uint256 lastValue;
+        uint256 result = 0;
+        uint256 lastCoefficient = 0;
+        uint256 lastValue = 0;
 
         for (uint256 i = beginN; i <= n; i++) {
             uint256 coefficient = mulDiv(bn, i, bd);
