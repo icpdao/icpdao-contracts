@@ -27,7 +27,6 @@ contract DAOFactory is Context, IDAOFactory {
     function setStaking(address _staking) external override {
         require(_owner == _msgSender(), 'ICPDAO: ONLY OWNER CAN CALL');
         require(_staking != address(0), 'ICPDAO: _staking INVALID');
-        require(staking == address(0), 'ICPDAO: _staking ADDRESS EXITST');
         staking = _staking;
     }
 
@@ -80,7 +79,6 @@ contract DAOFactory is Context, IDAOFactory {
 
     function transferOwnership(address payable _newOwner) external override {
         require(msg.sender == _owner, 'ICPDAO: NOT OWNER');
-        require(_newOwner != address(0), 'ICPDAO: NEW OWNER INVALID');
         _owner = _newOwner;
     }
 }

@@ -140,6 +140,7 @@ contract DAOToken is IDAOToken, ERC20 {
         int24 _tickUpper,
         uint160 _sqrtPriceX96
     ) external payable override onlyOwner {
+        require(lpPool == address(0), 'ICPDAO: LP POOL ALREADY EXISTS');
         require(_baseTokenAmount > 0, 'ICPDAO: BASE TOKEN AMOUNT MUST > 0');
         require(_quoteTokenAmount > 0, 'ICPDAO: QUOTE TOKEN AMOUNT MUST > 0');
         require(_baseTokenAmount <= temporaryAmount, 'ICPDAO: NOT ENOUGH TEMPORARYAMOUNT');
@@ -296,6 +297,7 @@ contract DAOToken is IDAOToken, ERC20 {
 
     function bonusWithdraw() external override {
         uint256 count = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).balanceOf(address(this));
+        require(count > 0, 'ICPDAO: NO POOL');
         uint256[] memory tokenIdList = new uint256[](count);
         for (uint256 index = 0; index < count; index++) {
             tokenIdList[index] = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).tokenOfOwnerByIndex(

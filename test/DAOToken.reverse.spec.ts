@@ -37,7 +37,7 @@ import {MaxUint128} from "./shared/constants";
 const { expect } = chai
 
 
-describe("IcpdaoDaoToken", () => {
+describe("IcpdaoDaoToken.reverse", () => {
     let nonfungiblePositionManagerAddress: string
     let weth9Address: string
     let swapRouterAddress: string
@@ -80,6 +80,11 @@ describe("IcpdaoDaoToken", () => {
     it("create pool 1", async () => {
         // deploy IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
         const DaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
+        // magic code for token sequence
+        (await DaoTokenFactoryFactory.deploy(
+            deployAccount.address
+        ));
+        //
         const daoTokenFactory = (await DaoTokenFactoryFactory.deploy(
             deployAccount.address
         )) as DAOFactory;
@@ -609,8 +614,8 @@ describe("IcpdaoDaoToken", () => {
 
         expect(ownerAccountHaveEthAdd).to.equal(BigNumber.from("15000000000000"));
         expect(ownerAccountHaveIcpAdd).to.equal(BigNumber.from("14999999999999"));
-        expect(stakingHaveEthAdd).to.equal(BigNumber.from("1485000000000003"));
-        expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1484999999999999"));
+        expect(stakingHaveEthAdd).to.equal(BigNumber.from("1485000000000001"));
+        expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1485000000000000"));
 
         (await icpdaoDaoToken.connect(ownerAccount).transfer(icpdaoDaoToken.address, 100)).wait();
 
@@ -834,8 +839,8 @@ describe("IcpdaoDaoToken", () => {
 
         expect(ownerAccountHaveEthAdd).to.equal(BigNumber.from("15000000000000"));
         expect(ownerAccountHaveIcpAdd).to.equal(BigNumber.from("14999999999999"));
-        expect(stakingHaveEthAdd).to.equal(BigNumber.from("1485000000000003"));
-        expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1484999999999999"));
+        expect(stakingHaveEthAdd).to.equal(BigNumber.from("1485000000000001"));
+        expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1485000000000000"));
 
     })
 
@@ -947,6 +952,14 @@ describe("IcpdaoDaoToken", () => {
 
     it("test manager and owner", async () => {
         const IcpdaoDaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
+        // magic code for token sequence
+        await IcpdaoDaoTokenFactoryFactory.deploy(
+            deployAccount.address
+        );
+        await IcpdaoDaoTokenFactoryFactory.deploy(
+            deployAccount.address
+        );
+        //
         const icpdaoDaoTokenFactory = (await IcpdaoDaoTokenFactoryFactory.deploy(
             deployAccount.address
         )) as DAOFactory;
