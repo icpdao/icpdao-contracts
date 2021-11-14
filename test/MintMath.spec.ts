@@ -1,3 +1,4 @@
+import { MaxUint256 } from "@uniswap/sdk-core"
 import { expect } from "chai"
 import { BigNumber, BigNumberish } from "ethers"
 import { ethers } from "hardhat"
@@ -32,6 +33,19 @@ describe('MintMath', () => {
         expect(await mintMathTest.mulDiv(1, 365, 365)).to.be.equal(1)
         expect(await mintMathTest.mulDiv(1, 367, 365)).to.be.equal(1)
 
+        expect(await mintMathTest.mulDiv(3, 4, 6)).to.be.equal(2)
+
+        expect(await mintMathTest.mulDiv(
+            BigNumber.from(2).pow(128).sub(1), 
+            BigNumber.from(2).pow(128).sub(1),
+            BigNumber.from(2).pow(128).sub(1))
+        ).to.be.equal(BigNumber.from(2).pow(128).sub(1))
+
+        expect(await mintMathTest.mulDiv(
+            BigNumber.from(2).pow(128).sub(1), 
+            BigNumber.from(2).pow(10).sub(1),
+            BigNumber.from(2).pow(128).sub(1))
+        ).to.be.equal(BigNumber.from(2).pow(10).sub(1))
     })
 
     it('test days 10, 1/2 365', async () => {

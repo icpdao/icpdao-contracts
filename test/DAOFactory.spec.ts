@@ -136,10 +136,6 @@ describe("DAOFactory", async () => {
             await daoFactory.staking()
         ).to.eq(mockStaking.address)
 
-        await expect(
-            daoFactory.connect(w1).setStaking(mockStaking.address)
-        ).to.be.revertedWith("ICPDAO: _staking ADDRESS EXITST");
-
     })
 
     it("transferOwnership", async () => {
