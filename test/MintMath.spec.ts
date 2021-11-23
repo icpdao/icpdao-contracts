@@ -80,4 +80,22 @@ describe('MintMath', () => {
         expect(await mintMathTest.results()).to.be.equal(3620)
     })
 
+    it('tests days 10, 1/4, 30', async () => {
+        // 从第 1 天开始, 每天 10 token, 每 30 天 减 0.25, 第 31, 61 天的挖矿数量
+        const args = {
+            p: 10,
+            aNumerator: 1,
+            aDenominator: 4,
+            bNumerator: 1,
+            bDenominator: 30,
+            c: 0,
+            d: 0
+        }
+        let currentTime = Math.floor((new Date()).getTime() / 1000)
+        await mintMathTest.initialize(args, currentTime)
+        currentTime = currentTime + 86400 * 31 + 8
+        await mintMathTest.total(currentTime)
+        expect(await mintMathTest.results()).to.be.equal(10*30+2*1)
+    })
+
 })
