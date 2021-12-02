@@ -57,13 +57,14 @@ library MintMath {
         uint256 lastValue = 0;
 
         for (uint256 i = beginN; i <= n; i++) {
-            uint256 coefficient = mulDiv(bn, i, bd);
+            uint256 coefficient = mulDiv(bn, i-1, bd);
             uint256 value = lastValue;
             if (coefficient != lastCoefficient || i == beginN) {
                 value = coefficient + c;
                 value = (((an**value) * p) * 1e12) / (ad**value);
                 value += d * 1e12;
                 if (value < 0) value = 0;
+                value = value / 1e12;
                 lastValue = value;
                 lastCoefficient = coefficient;
             }
@@ -72,7 +73,6 @@ library MintMath {
 
         last.lastTimestamp = endTimestamp;
         last.n = n;
-        result = result / 1e12;
         return result;
     }
 }
