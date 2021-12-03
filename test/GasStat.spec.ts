@@ -1,6 +1,7 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import {
+    DAOFactoryStore,
     DAOFactory,
     DAOStaking,
     DAOStaking__factory,
@@ -38,14 +39,19 @@ describe("GasStat", async () => {
     let firstMintTimestamp: number = startTimestamp + 86400 * 40;
     let uniswapV3Pool: IUniswapV3Pool;
     let swapRouter: ISwapRouter;
+    let store: DAOFactoryStore;
 
     it("deploy DAOFactory", async () => {
         const [w1] = await ethers.getSigners();
+        store = (await (await ethers.getContractFactory('DAOFactoryStore')).deploy(w1.address)) as DAOFactoryStore;
+
         const daoFactory_: ContractFactory = new DAOFactory__factory(w1);
-        daoFactory = (await daoFactory_.deploy(w1.address)) as DAOFactory;
+        daoFactory = (await daoFactory_.deploy(w1.address, store.address)) as DAOFactory;
         expect(
             await daoFactory.owner()
         ).to.eq(w1.address)
+
+        await (await store.connect(w1).addFactory(daoFactory.address)).wait();
     })
 
     it("deploy DAOStaking", async () => {
@@ -87,7 +93,7 @@ describe("GasStat", async () => {
             "ICPD"
         )).wait();
 
-        const icpdaoDaoTokenAddress = await daoFactory.tokens('1')
+        const {token: icpdaoDaoTokenAddress} = await daoFactory.tokens('1')
         icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         expect(
@@ -222,7 +228,7 @@ describe("GasStat", async () => {
         swapRouter = (await ethers.getContractAt(ISwapRouterABI, swapRouterAddress)) as ISwapRouter;
 
         const [w1, w2, w3, w4, w5, w6, w7, w8] = await ethers.getSigners();
-        await (await daoFactory.connect(w1).setStaking(w8.address)).wait();
+        await (await store.connect(w1).setStaking(w8.address)).wait();
         const fee = await uniswapV3Pool.fee();
         let gasPrice = BigNumber.from(10).pow(9).mul(20);
 

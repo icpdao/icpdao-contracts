@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import {DAOFactory, DAOToken, ERC20Mock} from "../typechain";
+import {DAOFactory, DAOFactoryStore, DAOToken, ERC20Mock} from "../typechain";
 import { abi as IDAOTokenABI} from "../artifacts/contracts/interfaces/IDAOToken.sol/IDAOToken.json";
 import {abi as IcpdaoDaoTokenABI} from "../artifacts/contracts/DAOToken.sol/DAOToken.json";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/src/signers";
@@ -12,8 +12,14 @@ describe("DAOFactory.2", async () => {
 
     it("deploy", async () => {
         const [w1, w2, w3] = await ethers.getSigners();
+
+        const store = (await (await ethers.getContractFactory('DAOFactoryStore')).deploy(w1.address)) as DAOFactoryStore;
+
         const daoFactory_ = await ethers.getContractFactory('DAOFactory');
-        daoFactory = (await daoFactory_.deploy(w1.address)) as DAOFactory;
+        daoFactory = (await daoFactory_.deploy(w1.address, store.address)) as DAOFactory;
+
+        await (await store.addFactory(daoFactory.address)).wait();
+
         expect(
             await daoFactory.staking()
         ).to.eq('0x0000000000000000000000000000000000000000')
@@ -40,7 +46,7 @@ describe("DAOFactory.2", async () => {
         );
         await doDeploy.wait();
 
-        const icpdaoDaoTokenAddress = await daoFactory.tokens('mock_dao_id_1')
+        const {token: icpdaoDaoTokenAddress} = await daoFactory.tokens('mock_dao_id_1')
         const icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         expect(
@@ -68,7 +74,7 @@ describe("DAOFactory.2", async () => {
                 "MockDAO1",
                 "MD1"
             )
-        ).to.be.revertedWith("ICPDAO: NOT OWNER DO REDEPLOY");
+        ).to.be.revertedWith("NOT OWNER DO REDEPLOY");
 
         const reDoDeploy = await daoFactory.connect(w3).deploy(
             "mock_dao_id_1",
@@ -92,55 +98,12 @@ describe("DAOFactory.2", async () => {
         );
         await reDoDeploy.wait();
 
-        const icpdaoDaoTokenAddress2 = await daoFactory.tokens('mock_dao_id_1')
+        const {token: icpdaoDaoTokenAddress2} = await daoFactory.tokens('mock_dao_id_1')
         const icpdaoDaoToken2 = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress2)) as DAOToken;
 
         expect(
             await icpdaoDaoToken2.owner()
         ).to.eq(w2.address)
-    })
-
-    it("setStaking", async () => {
-        const [w1, w2, w3] = await ethers.getSigners();
-        expect(
-            await daoFactory.owner()
-        ).to.eq(w1.address)
-
-        expect(
-            await daoFactory.staking()
-        ).to.eq('0x0000000000000000000000000000000000000000')
-
-        await expect(
-            daoFactory.connect(w2).setStaking(
-                w1.address
-            )
-        ).to.be.revertedWith("ICPDAO: ONLY OWNER CAN CALL");
-
-        await expect(
-            daoFactory.connect(w1).setStaking(
-                '0x0000000000000000000000000000000000000000'
-            )
-        ).to.be.revertedWith("ICPDAO: _staking INVALID");
-
-        expect(
-            await daoFactory.staking()
-        ).to.eq('0x0000000000000000000000000000000000000000')
-
-        await (await daoFactory.connect(w1).setStaking(
-            w2.address
-        )).wait();
-
-        expect(
-            await daoFactory.staking()
-        ).to.eq(w2.address)
-
-        await (await daoFactory.connect(w1).setStaking(
-            w3.address
-        )).wait();
-
-        expect(
-            await daoFactory.staking()
-        ).to.eq(w3.address)
     })
 
     it("transferOwnership", async () => {
@@ -153,7 +116,7 @@ describe("DAOFactory.2", async () => {
             daoFactory.connect(w2).transferOwnership(
                 w1.address
             )
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("Ownable: caller is not the owner");
         expect(
             await daoFactory.owner()
         ).to.eq(w1.address);
@@ -169,7 +132,7 @@ describe("DAOFactory.2", async () => {
             daoFactory.connect(w1).transferOwnership(
                 w3.address
             )
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("Ownable: caller is not the owner");
         expect(
             await daoFactory.owner()
         ).to.eq(w2.address);
@@ -191,8 +154,14 @@ describe("DAOFactory.2", async () => {
 
     it("destruct", async () => {
         const [w1, w2, w3] = await ethers.getSigners();
+
+        const store = (await (await ethers.getContractFactory('DAOFactoryStore')).deploy(w1.address)) as DAOFactoryStore;
+
         const daoFactory_ = await ethers.getContractFactory('DAOFactory');
-        const daoFactoryDestruct = (await daoFactory_.deploy(w1.address)) as DAOFactory;
+        const daoFactoryDestruct = (await daoFactory_.deploy(w1.address, store.address)) as DAOFactory;
+
+        await (await store.addFactory(daoFactoryDestruct.address)).wait();
+
         expect(
             await daoFactoryDestruct.staking()
         ).to.eq('0x0000000000000000000000000000000000000000')
@@ -202,15 +171,18 @@ describe("DAOFactory.2", async () => {
 
         await expect(
             daoFactoryDestruct.connect(w2).destruct()
-        ).to.be.revertedWith("ICPDAO: ONLY OWNER CAN CALL DESTRUCT");
+        ).to.be.revertedWith("Ownable: caller is not the owner");
 
         await (await daoFactoryDestruct.connect(w1).destruct()).wait();
     })
 
     it("transferOwnership zero", async () => {
         const [w1, w2, w3] = await ethers.getSigners();
+
+        const store = (await (await ethers.getContractFactory('DAOFactoryStore')).deploy(w1.address)) as DAOFactoryStore;
+
         const daoFactory_ = await ethers.getContractFactory('DAOFactory');
-        const daoFactoryZero = (await daoFactory_.deploy(w1.address)) as DAOFactory;
+        const daoFactoryZero = (await daoFactory_.deploy(w1.address, store.address)) as DAOFactory;
         expect(
             await daoFactoryZero.staking()
         ).to.eq('0x0000000000000000000000000000000000000000')
@@ -218,9 +190,7 @@ describe("DAOFactory.2", async () => {
             await daoFactoryZero.owner()
         ).to.eq(w1.address);
 
-        await (await daoFactoryZero.connect(w1).transferOwnership(
-            '0x0000000000000000000000000000000000000000'
-        )).wait();
+        await (await daoFactoryZero.connect(w1).renounceOwnership()).wait();
         expect(
             await daoFactoryZero.owner()
         ).to.eq('0x0000000000000000000000000000000000000000');

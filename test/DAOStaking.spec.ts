@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 import {BigNumber, ContractFactory, Wallet} from "ethers";
 
 import {
+    DAOFactoryStore,
     DAOFactory, DAOFactory__factory,
     DAOToken, DAOToken__factory,
     DAOStaking, DAOStaking__factory
@@ -177,11 +178,16 @@ describe("IcpdaoStaking", () => {
             ownerAccount.address
         )) as DAOStaking;
 
+        const store = (await (await ethers.getContractFactory('DAOFactoryStore')).deploy(ownerAccount.address)) as DAOFactoryStore;
+
         // deploy DAOFactory
         const IcpdaoDaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         icpdaoDaoTokenFactory = (await IcpdaoDaoTokenFactoryFactory.deploy(
-            ownerAccount.address
+            ownerAccount.address,
+            store.address
         )) as DAOFactory;
+
+        await (await store.connect(ownerAccount).addFactory(icpdaoDaoTokenFactory.address)).wait();
 
         // deploy icpdaotoken
         const blockNumber = await ethers.provider.getBlockNumber();
@@ -214,7 +220,7 @@ describe("IcpdaoStaking", () => {
             "ICP"
         )).wait();
 
-        const icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
+        const {token: icpdaoDaoTokenAddress} = await icpdaoDaoTokenFactory.tokens('1')
         icpdaoToken = (await ethers.getContractAt(DAOTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         // deploy tokena
@@ -239,7 +245,7 @@ describe("IcpdaoStaking", () => {
             "TA"
         )).wait();
 
-        const tokenaAddress = await icpdaoDaoTokenFactory.tokens('2')
+        const {token: tokenaAddress} = await icpdaoDaoTokenFactory.tokens('2')
         tokena = (await ethers.getContractAt(DAOTokenABI, tokenaAddress)) as DAOToken;
 
         // deploy tokenb
@@ -264,7 +270,7 @@ describe("IcpdaoStaking", () => {
             "TB"
         )).wait();
 
-        const tokenbAddress = await icpdaoDaoTokenFactory.tokens('3')
+        const {token: tokenbAddress} = await icpdaoDaoTokenFactory.tokens('3')
         tokenb = (await ethers.getContractAt(DAOTokenABI, tokenbAddress)) as DAOToken;
 
         // setIcpdaoToken

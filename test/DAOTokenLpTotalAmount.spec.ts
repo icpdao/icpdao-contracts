@@ -2,6 +2,7 @@ import chai from 'chai'
 import { ethers } from 'hardhat';
 
 import {
+    DAOFactoryStore,
     DAOToken, DAOToken__factory, IWETH9, ERC20Mock, ERC20Mock__factory,
     DAOFactory,
     IUniswapV3Pool, INonfungiblePositionManager, ISwapRouter, DAOFactory__factory
@@ -83,16 +84,21 @@ describe("IcpdaoDAOTokenLpTotalAmount", () => {
         swapRouter = (await ethers.getContractAt(ISwapRouterABI, swapRouterAddress)) as ISwapRouter;
     });
     it("deploy max _lpTotalAmount", async () => {
+        const store = (await (await ethers.getContractFactory('DAOFactoryStore')).deploy(ownerAccount.address)) as DAOFactoryStore;
+
         // deploy IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
         const DaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         const daoTokenFactory = (await DaoTokenFactoryFactory.deploy(
-            deployAccount.address
+            deployAccount.address,
+            store.address
         )) as DAOFactory;
         // deploy helloToken
         const ERC20MockFactory: ContractFactory = new ERC20Mock__factory(deployAccount);
         const helloToken = (await ERC20MockFactory.deploy(
             [deployAccount.address], [BigNumber.from(10).pow(18 * 2)], "mockERC1", "MERC1"
         )) as ERC20Mock;
+
+        await (await store.connect(ownerAccount).addFactory(daoTokenFactory.address)).wait();
 
         // deploy icpdaoDaoToken
         let tokenCount = BigNumber.from(10).pow(18).mul(10000);
@@ -116,7 +122,7 @@ describe("IcpdaoDAOTokenLpTotalAmount", () => {
             "icp-token",
             "ICP"
         )).wait();
-        const icpdaoDaoTokenAddress = await daoTokenFactory.tokens('1')
+        const {token: icpdaoDaoTokenAddress} = await daoTokenFactory.tokens('1')
         const icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(_lpTotalAmount1)

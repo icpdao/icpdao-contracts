@@ -5,6 +5,7 @@ import '@nomiclabs/hardhat-etherscan'
 import 'hardhat-deploy'
 import "uniswap-v3-deploy-plugin"
 import 'hardhat-gas-reporter'
+import "hardhat-contract-sizer";
 
 const dotenv = require("dotenv")
 dotenv.config()
@@ -58,8 +59,14 @@ export default {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 175,
+        runs: 200,
       }
     },
+  },
+  contractSizer: {
+    alphaSort: true,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: true,
   },
 }

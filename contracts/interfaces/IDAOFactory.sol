@@ -21,14 +21,11 @@ interface IDAOFactory {
 
     function destruct() external;
 
-    /// @notice Get DAOToken address by daoID.
-    /// @param _daoID A unique ID provided by the ICPDAO.
-    /// @return DAOToken address.
-    function tokens(string memory _daoID) external view returns (address);
+    function tokens(string memory _daoID) external view returns (address token, uint256 version);
 
     function staking() external view returns (address);
 
-    function setStaking(address _staking) external;
+    function daoFactoryStoreAddress() external view returns (address);
 
     function deploy(
         string memory _daoID,
@@ -41,8 +38,4 @@ interface IDAOFactory {
         string memory _erc20Name,
         string memory _erc20Symbol
     ) external returns (address token);
-
-    function owner() external view returns (address);
-
-    function transferOwnership(address payable _newOwner) external;
 }
