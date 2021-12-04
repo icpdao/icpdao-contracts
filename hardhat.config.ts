@@ -2,8 +2,7 @@ import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
 import '@nomiclabs/hardhat-etherscan'
-import 'hardhat-deploy'
-import "uniswap-v3-deploy-plugin"
+
 import 'hardhat-gas-reporter'
 import "hardhat-contract-sizer";
 
@@ -42,9 +41,6 @@ export default {
     kovan: {
       url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
     },
-  },
-  namedAccounts: {
-    deployer: 0,
   },
   etherscan: {
     // Your API key for Etherscan
