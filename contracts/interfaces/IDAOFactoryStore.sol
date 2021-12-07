@@ -2,6 +2,10 @@
 pragma solidity >=0.8.4;
 
 interface IDAOFactoryStore {
+    event AddFactory(address _factory);
+    event RemoveFactory(address _factory);
+    event AddToken(address _factory, string _daoID, address _token, uint256 version);
+
     function tokens(string memory _daoID) external view returns (address token, uint256 version);
 
     function isFactory(address addr) external view returns (bool);

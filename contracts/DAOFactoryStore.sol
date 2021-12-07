@@ -33,6 +33,7 @@ contract DAOFactoryStore is IDAOFactoryStore, Context, Ownable {
     ) external override onlyFactory {
         _tokens[_daoId] = token;
         _tokenVersion[token] = version;
+        emit AddToken(_msgSender(), _daoId, token, version);
     }
 
     function setStaking(address _staking) external override onlyOwner {
@@ -42,9 +43,11 @@ contract DAOFactoryStore is IDAOFactoryStore, Context, Ownable {
 
     function addFactory(address _factory) external override onlyOwner {
         isFactory[_factory] = true;
+        emit AddFactory(_factory);
     }
 
     function removeFactory(address _factory) external override onlyOwner {
         isFactory[_factory] = false;
+        emit RemoveFactory(_factory);
     }
 }
