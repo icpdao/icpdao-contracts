@@ -2,32 +2,28 @@
 pragma solidity >=0.8.4;
 
 import '@openzeppelin/contracts/utils/Context.sol';
-
 import './interfaces/IDAOFactory.sol';
 import './interfaces/IDAOToken.sol';
 import './libraries/MintMath.sol';
+import './interfaces/IDAOFactoryStore.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 import './DAOToken.sol';
 
-contract DAOFactory is Context, IDAOFactory {
-    address payable private _owner;
+contract DAOFactory is Context, Ownable, IDAOFactory {
+    uint256 public VERSION = 1;
+    address public override daoFactoryStoreAddress;
 
-    mapping(string => address) public override tokens;
-
-    address public override staking;
-
-    constructor(address payable _ownerAddress) {
-        _owner = _ownerAddress;
+    constructor(address _owner, address _daoFactoryStoreAddress) {
+        transferOwnership(_owner);
+        daoFactoryStoreAddress = _daoFactoryStoreAddress;
     }
 
-    function destruct() external override {
-        require(_owner == _msgSender(), 'ICPDAO: ONLY OWNER CAN CALL DESTRUCT');
-        selfdestruct(_owner);
+    function tokens(string memory _daoID) external view override returns (address token, uint256 version) {
+        (token, version) = IDAOFactoryStore(daoFactoryStoreAddress).tokens(_daoID);
     }
 
-    function setStaking(address _staking) external override {
-        require(_owner == _msgSender(), 'ICPDAO: ONLY OWNER CAN CALL');
-        require(_staking != address(0), 'ICPDAO: _staking INVALID');
-        staking = _staking;
+    function staking() external view override returns (address attr) {
+        attr = IDAOFactoryStore(daoFactoryStoreAddress).staking();
     }
 
     function deploy(
@@ -41,9 +37,12 @@ contract DAOFactory is Context, IDAOFactory {
         string memory _erc20Name,
         string memory _erc20Symbol
     ) external override returns (address token) {
-        if (tokens[_daoID] != address(0)) {
-            IDAOToken oldToken = IDAOToken(tokens[_daoID]);
-            require(_msgSender() == oldToken.owner(), 'ICPDAO: NOT OWNER DO REDEPLOY');
+        IDAOFactoryStore store = IDAOFactoryStore(daoFactoryStoreAddress);
+        (address oldTokenAddress, ) = store.tokens(_daoID);
+
+        if (oldTokenAddress != address(0)) {
+            IDAOToken oldToken = IDAOToken(oldTokenAddress);
+            require(_msgSender() == oldToken.owner(), 'NOT OWNER DO REDEPLOY');
         }
         token = address(
             new DAOToken(
@@ -58,7 +57,7 @@ contract DAOFactory is Context, IDAOFactory {
                 _erc20Symbol
             )
         );
-        tokens[_daoID] = token;
+        store.addToken(_daoID, token, VERSION);
         emit Deploy(
             _daoID,
             _genesisTokenAddressList,
@@ -73,12 +72,7 @@ contract DAOFactory is Context, IDAOFactory {
         );
     }
 
-    function owner() external view override returns (address) {
-        return _owner;
-    }
-
-    function transferOwnership(address payable _newOwner) external override {
-        require(msg.sender == _owner, 'ICPDAO: NOT OWNER');
-        _owner = _newOwner;
+    function destruct() external override onlyOwner {
+        selfdestruct(payable(owner()));
     }
 }

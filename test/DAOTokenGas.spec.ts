@@ -80,6 +80,7 @@ describe("IcpdaoDaoTokenGas", () => {
     });
 
     it("create pool 2", async () => {
+
         // deploy icpdaoDaoToken
         let tokenCount = BigNumber.from(10).pow(18).mul(10000);
         const IcpdaoDaoTokenFactory: ContractFactory = new DAOToken__factory(deployAccount);

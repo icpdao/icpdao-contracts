@@ -2,6 +2,7 @@ import chai from 'chai'
 import { ethers } from 'hardhat';
 
 import {
+    DAOFactoryStore,
     DAOToken, DAOToken__factory, IWETH9, ERC20Mock, ERC20Mock__factory,
     DAOFactory,
     IUniswapV3Pool, INonfungiblePositionManager, ISwapRouter, DAOFactory__factory
@@ -78,11 +79,17 @@ describe("IcpdaoDaoToken", () => {
         swapRouter = (await ethers.getContractAt(ISwapRouterABI, swapRouterAddress)) as ISwapRouter;
     });
     it("create pool 1", async () => {
+        const store = (await (await ethers.getContractFactory('DAOFactoryStore')).deploy(ownerAccount.address)) as DAOFactoryStore;
+
         // deploy IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
         const DaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         const daoTokenFactory = (await DaoTokenFactoryFactory.deploy(
-            deployAccount.address
+            deployAccount.address,
+            store.address
         )) as DAOFactory;
+
+        await (await store.connect(ownerAccount).addFactory(daoTokenFactory.address)).wait();
+
         // deploy helloToken
         const ERC20MockFactory: ContractFactory = new ERC20Mock__factory(deployAccount);
         const helloToken = (await ERC20MockFactory.deploy(
@@ -110,7 +117,7 @@ describe("IcpdaoDaoToken", () => {
             "icp-token",
             "ICP"
         )).wait();
-        const icpdaoDaoTokenAddress = await daoTokenFactory.tokens('1')
+        const {token: icpdaoDaoTokenAddress} = await daoTokenFactory.tokens('1')
         const icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
@@ -209,7 +216,7 @@ describe("IcpdaoDaoToken", () => {
                 tickUpper,
                 sqrtPriceX96
             )
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
         let tx3 = await icpdaoDaoToken.connect(ownerAccount).createLPPoolOrLinkLPPool(
             baseTokenAmount,
             helloToken.address,
@@ -269,7 +276,7 @@ describe("IcpdaoDaoToken", () => {
                 tickLowerMint,
                 tickUpperMint
             )
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
 
         let tx4 = await icpdaoDaoToken.connect(ownerAccount).updateLPPool(
             200,
@@ -295,10 +302,15 @@ describe("IcpdaoDaoToken", () => {
     })
 
     it("create pool 2", async () => {
+        const store = (await (await ethers.getContractFactory('DAOFactoryStore')).deploy(ownerAccount.address)) as DAOFactoryStore;
+
         const DaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         const daoTokenFactory = (await DaoTokenFactoryFactory.deploy(
-            deployAccount.address
+            deployAccount.address,
+            store.address
         )) as DAOFactory;
+
+        await (await store.connect(ownerAccount).addFactory(daoTokenFactory.address)).wait();
 
         // deploy icpdaoDaoToken
         let tokenCount = BigNumber.from(10).pow(18).mul(10000);
@@ -327,7 +339,7 @@ describe("IcpdaoDaoToken", () => {
             "ICP"
         )).wait();
 
-        const icpdaoDaoTokenAddress = await daoTokenFactory.tokens('1')
+        const {token: icpdaoDaoTokenAddress} = await daoTokenFactory.tokens('1')
         const icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
@@ -576,9 +588,9 @@ describe("IcpdaoDaoToken", () => {
 
         await expect(
             icpdaoDaoToken.connect(ownerAccount).bonusWithdraw()
-        ).to.be.revertedWith("ICPDAO: NOT _staking");
+        ).to.be.revertedWith("NO _staking");
 
-        await (await daoTokenFactory.connect(deployAccount).setStaking(stakingAddress)).wait();
+        await (await store.connect(ownerAccount).setStaking(stakingAddress)).wait();
 
         let tx7 = await icpdaoDaoToken.connect(ownerAccount).bonusWithdraw();
         const tx7Done = await tx7.wait();
@@ -620,10 +632,15 @@ describe("IcpdaoDaoToken", () => {
     })
 
     it('bonusWithdrawByTokenIdList', async () => {
+        const store = (await (await ethers.getContractFactory('DAOFactoryStore')).deploy(ownerAccount.address)) as DAOFactoryStore;
+
         const DaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         const daoTokenFactory = (await DaoTokenFactoryFactory.deploy(
-            deployAccount.address
+            deployAccount.address,
+            store.address
         )) as DAOFactory;
+
+        await (await store.connect(ownerAccount).addFactory(daoTokenFactory.address)).wait();
 
         const blockNumber = await ethers.provider.getBlockNumber();
         const block = await ethers.provider.getBlock(blockNumber);
@@ -659,7 +676,7 @@ describe("IcpdaoDaoToken", () => {
             "ICP"
         )).wait();
 
-        const icpdaoDaoTokenAddress = await daoTokenFactory.tokens('1')
+        const {token: icpdaoDaoTokenAddress} = await daoTokenFactory.tokens('1')
         const icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         const [mockPool, position] = getCreatePoolAndPosition(
@@ -808,9 +825,9 @@ describe("IcpdaoDaoToken", () => {
 
         await expect(
             icpdaoDaoToken.connect(ownerAccount).bonusWithdrawByTokenIdList(tokenIdList)
-        ).to.be.revertedWith("ICPDAO: NOT _staking");
+        ).to.be.revertedWith("NO _staking");
 
-        await (await daoTokenFactory.connect(deployAccount).setStaking(stakingAddress)).wait();
+        await (await store.connect(ownerAccount).setStaking(stakingAddress)).wait();
 
         let tx7 = await icpdaoDaoToken.connect(ownerAccount).bonusWithdrawByTokenIdList(tokenIdList);
         const tx7Done = await tx7.wait();
@@ -834,17 +851,22 @@ describe("IcpdaoDaoToken", () => {
 
         expect(ownerAccountHaveEthAdd).to.equal(BigNumber.from("15000000000000"));
         expect(ownerAccountHaveIcpAdd).to.equal(BigNumber.from("14999999999999"));
-        expect(stakingHaveEthAdd).to.equal(BigNumber.from("1485000000000003"));
-        expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1484999999999999"));
+        expect(stakingHaveEthAdd).to.equal(BigNumber.from("1485000000000001"));
+        expect(stakingHaveIcpAdd).to.equal(BigNumber.from("1485000000000000"));
 
     })
 
     it("IcpdaoDaoTokenFactory redeploy", async () => {
+        const store = (await (await ethers.getContractFactory('DAOFactoryStore')).deploy(ownerAccount.address)) as DAOFactoryStore;
+
         // deploy IcpdaoDaoTokenFactory, IcpdaoDaoTokenFactory__factory,
         const IcpdaoDaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         const icpdaoDaoTokenFactory = (await IcpdaoDaoTokenFactoryFactory.deploy(
-            deployAccount.address
+            deployAccount.address,
+            store.address
         )) as DAOFactory;
+
+        await (await store.connect(ownerAccount).addFactory(icpdaoDaoTokenFactory.address)).wait();
 
         // deploy icpdaoDaoToken
         let tokenCount = BigNumber.from(10).pow(18).mul(10000);
@@ -868,7 +890,7 @@ describe("IcpdaoDaoToken", () => {
             "ICP"
         )).wait();
 
-        let icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
+        let {token: icpdaoDaoTokenAddress} = await icpdaoDaoTokenFactory.tokens('1')
         let icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
@@ -894,7 +916,7 @@ describe("IcpdaoDaoToken", () => {
                 "icp-token",
                 "ICP"
             )
-        ).to.be.revertedWith('ICPDAO: NOT OWNER DO REDEPLOY')
+        ).to.be.revertedWith('NOT OWNER DO REDEPLOY')
 
         // owner redeploy
         await (await icpdaoDaoTokenFactory.connect(ownerAccount).deploy(
@@ -916,7 +938,7 @@ describe("IcpdaoDaoToken", () => {
             "icp-token",
             "ICP"
         )).wait();
-        icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
+        icpdaoDaoTokenAddress = (await icpdaoDaoTokenFactory.tokens('1')).token
         icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
 
@@ -942,14 +964,18 @@ describe("IcpdaoDaoToken", () => {
                 "icp-token",
                 "ICP"
             )
-        ).to.be.revertedWith("ICPDAO: NOT OWNER DO REDEPLOY");
+        ).to.be.revertedWith("NOT OWNER DO REDEPLOY");
     })
 
     it("test manager and owner", async () => {
+        const store = (await (await ethers.getContractFactory('DAOFactoryStore')).deploy(ownerAccount.address)) as DAOFactoryStore;
+
         const IcpdaoDaoTokenFactoryFactory: ContractFactory = new DAOFactory__factory(deployAccount);
         const icpdaoDaoTokenFactory = (await IcpdaoDaoTokenFactoryFactory.deploy(
-            deployAccount.address
+            deployAccount.address,
+            store.address
         )) as DAOFactory;
+        await (await store.connect(ownerAccount).addFactory(icpdaoDaoTokenFactory.address)).wait();
 
         // deploy icpdaoDaoToken
         let tokenCount = BigNumber.from(10).pow(18).mul(10000);
@@ -985,7 +1011,7 @@ describe("IcpdaoDaoToken", () => {
             "ICP"
         )).wait();
 
-        const icpdaoDaoTokenAddress = await icpdaoDaoTokenFactory.tokens('1')
+        const {token: icpdaoDaoTokenAddress} = await icpdaoDaoTokenFactory.tokens('1')
         const icpdaoDaoToken = (await ethers.getContractAt(IcpdaoDaoTokenABI, icpdaoDaoTokenAddress)) as DAOToken;
 
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
@@ -1032,7 +1058,7 @@ describe("IcpdaoDaoToken", () => {
                     gasPrice: gasPrice
                 }
             )
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
 
         await (await icpdaoDaoToken.connect(ownerAccount).addManager(user1Account.address)).wait();
 
@@ -1050,7 +1076,7 @@ describe("IcpdaoDaoToken", () => {
                     gasPrice: gasPrice
                 }
             )
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
 
         let tx3 = await icpdaoDaoToken.connect(ownerAccount).createLPPoolOrLinkLPPool(
             baseTokenAmount,
@@ -1088,7 +1114,7 @@ describe("IcpdaoDaoToken", () => {
                 tickLowerMint,
                 tickUpperMint
             )
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
 
         await (await icpdaoDaoToken.connect(ownerAccount).addManager(user2Account.address)).wait();
 
@@ -1098,7 +1124,7 @@ describe("IcpdaoDaoToken", () => {
                 tickLowerMint,
                 tickUpperMint
             )
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
 
         let tx4 = await icpdaoDaoToken.connect(ownerAccount).updateLPPool(
             baseTokenAmount,
@@ -1118,7 +1144,7 @@ describe("IcpdaoDaoToken", () => {
                 tickLowerMint,
                 tickUpperMint
             )
-        ).to.be.revertedWith("NOT OWNER OR MANAGER");
+        ).to.be.revertedWith("onlyOwnerOrManager");
 
         await expect(
             icpdaoDaoToken.connect(user3Account).mint(
@@ -1129,7 +1155,7 @@ describe("IcpdaoDaoToken", () => {
                 tickLowerMint,
                 tickUpperMint
             )
-        ).to.be.revertedWith("NOT OWNER OR MANAGER");
+        ).to.be.revertedWith("onlyOwnerOrManager");
 
         await (await icpdaoDaoToken.connect(ownerAccount).addManager(user3Account.address)).wait();
 
@@ -1182,35 +1208,35 @@ describe("IcpdaoDaoToken", () => {
             const tx7Done = await tx7.wait();
         }
 
-        await (await icpdaoDaoTokenFactory.connect(deployAccount).setStaking(stakingAddress)).wait();
+        await (await store.connect(ownerAccount).setStaking(stakingAddress)).wait();
 
         let tx7 = await icpdaoDaoToken.connect(user4Account).bonusWithdraw();
         const tx7Done = await tx7.wait();
 
         await expect(
             icpdaoDaoToken.connect(user2Account).addManager(user4Account.address)
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
         await expect(
             icpdaoDaoToken.connect(user1Account).removeManager(user2Account.address)
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
         await (await icpdaoDaoToken.connect(ownerAccount).removeManager(user2Account.address)).wait();
         await (await icpdaoDaoToken.connect(ownerAccount).removeManager(user1Account.address)).wait();
         await expect(
             icpdaoDaoToken.connect(user2Account).addManager(user4Account.address)
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
         await expect(
             icpdaoDaoToken.connect(user1Account).removeManager(user3Account.address)
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
         await (await icpdaoDaoToken.connect(ownerAccount).removeManager(user3Account.address)).wait();
 
         //
         await (await icpdaoDaoToken.connect(ownerAccount).addManager(user1Account.address)).wait();
         await expect(
             icpdaoDaoToken.connect(user1Account).transferOwnership(user2Account.address)
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
         await expect(
             icpdaoDaoToken.connect(user2Account).transferOwnership(user3Account.address)
-        ).to.be.revertedWith("ICPDAO: NOT OWNER");
+        ).to.be.revertedWith("onlyOwner");
         await (await icpdaoDaoToken.connect(ownerAccount).transferOwnership(user1Account.address)).wait();
         await (await icpdaoDaoToken.connect(user1Account).addManager(user2Account.address)).wait();
 
@@ -1274,7 +1300,7 @@ describe("IcpdaoDaoToken", () => {
 
         await expect(
             icpdaoDaoToken.connect(user1Account).destruct()
-        ).to.be.revertedWith("ICPDAO: NOT OWNER")
+        ).to.be.revertedWith("onlyOwner")
 
         await icpdaoDaoToken.connect(ownerAccount).destruct()
     })
