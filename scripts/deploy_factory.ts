@@ -61,14 +61,14 @@ async function main() {
 
   // We get the contract to deploy
 
-  const owner = "0x??";
-  const store = "0x??";
+  const owner = "0xcf8834088b3b1e6D39938964a1d2A0c4BA7D4252";
+  const store = "0x6326f5C13526b231Dc7242CD97b7F34B38671158";
 
   const ledgerIndex = 2; // Ledger from 0 start
   const gasGwei = 3;
 
-  await deployByEnvAccount(owner, store, gasGwei);
-  // await deployByHardwareWallet(owner, store, gasGwei, ledgerIndex);
+  // await deployByEnvAccount(owner, store, gasGwei);
+  await deployByHardwareWallet(owner, store, gasGwei, ledgerIndex);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
