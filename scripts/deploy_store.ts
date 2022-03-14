@@ -56,10 +56,10 @@ async function main() {
 
   const ledgerIndex = 2; // Ledger from 0 start
   const gasGwei = 3;
-  const owner = "0x???";
+  const owner = "0xcf8834088b3b1e6D39938964a1d2A0c4BA7D4252";
 
-  await deployByEnvAccount(owner, gasGwei);
-  // await deployByHardwareWallet(owner, gasGwei, ledgerIndex);
+  // await deployByEnvAccount(owner, gasGwei);
+  await deployByHardwareWallet(owner, gasGwei, ledgerIndex);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
