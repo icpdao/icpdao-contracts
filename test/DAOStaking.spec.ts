@@ -1545,11 +1545,11 @@ describe("IcpdaoStaking", () => {
             user2Account.address
         )
 
-        await expect(
-            icpdaoStaking.connect(user1Account).destruct()
-        ).to.be.revertedWith("ICPDAO: ONLY OWNER CAN CALL DESTRUCT")
+        // await expect(
+        //     icpdaoStaking.connect(user1Account).destruct()
+        // ).to.be.revertedWith("ICPDAO: ONLY OWNER CAN CALL DESTRUCT")
 
-        await icpdaoStaking.connect(user2Account).destruct()
+        // await icpdaoStaking.connect(user2Account).destruct()
 
     });
 });

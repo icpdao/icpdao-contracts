@@ -56,8 +56,6 @@ interface IDAOToken is IDAOPermission {
 
     function WETH9() external view returns (address);
 
-    function destruct() external;
-
     function createLPPoolOrLinkLPPool(
         uint256 _baseTokenAmount,
         address _quoteTokenAddress,

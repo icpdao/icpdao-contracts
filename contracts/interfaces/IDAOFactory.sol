@@ -19,8 +19,6 @@ interface IDAOFactory {
         address _token
     );
 
-    function destruct() external;
-
     function tokens(string memory _daoID) external view returns (address token, uint256 version);
 
     function staking() external view returns (address);

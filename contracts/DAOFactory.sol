@@ -42,7 +42,7 @@ contract DAOFactory is Context, Ownable, IDAOFactory {
 
         if (oldTokenAddress != address(0)) {
             IDAOToken oldToken = IDAOToken(oldTokenAddress);
-            require(_msgSender() == oldToken.owner(), 'NOT OWNER DO REDEPLOY');
+            require(_msgSender() == oldToken.owner(), 'NODR');
         }
         token = address(
             new DAOToken(
@@ -70,9 +70,5 @@ contract DAOFactory is Context, Ownable, IDAOFactory {
             _erc20Symbol,
             token
         );
-    }
-
-    function destruct() external override onlyOwner {
-        selfdestruct(payable(owner()));
     }
 }

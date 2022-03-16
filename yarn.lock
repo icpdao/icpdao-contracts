@@ -2,6 +2,15 @@
 # yarn lockfile v1
 
 
+"@anders-t/ethers-ledger@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.npmmirror.com/@anders-t/ethers-ledger/-/ethers-ledger-1.0.4.tgz#07a981cf46cdeb9bdd86dfbc718038084d69739e"
+  integrity sha512-EVuIE5qe1rSbO4A/uHSHENtqA+OTA73aWNzWxiqo/kpUlXIpb6pWps31Pf4Zeh3XL5uW7iXWmkKjDYfJgQXAbw==
+  dependencies:
+    "@ledgerhq/hw-app-eth" "^6.24.0"
+    "@ledgerhq/hw-transport-node-hid" "^6.20.0"
+    ethers "^5.5.4"
+
 "@babel/code-frame@^7.0.0":
   version "7.16.0"
   resolved "https://registry.npmmirror.com/@babel/code-frame/download/@babel/code-frame-7.16.0.tgz#0dfc80309beec8411e65e706461c408b0bb9b431"
@@ -203,6 +212,21 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
+"@ethersproject/abi@5.6.0", "@ethersproject/abi@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/abi/-/abi-5.6.0.tgz#ea07cbc1eec2374d32485679c12408005895e9f3"
+  integrity sha512-AhVByTwdXCc2YQ20v300w6KVHle9g2OFc28ZAFCPnJyEpkv1xKXjZcSTgWOlv1i+0dqlgF8RCF2Rn2KC1t+1Vg==
+  dependencies:
+    "@ethersproject/address" "^5.6.0"
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/constants" "^5.6.0"
+    "@ethersproject/hash" "^5.6.0"
+    "@ethersproject/keccak256" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
+    "@ethersproject/strings" "^5.6.0"
+
 "@ethersproject/abstract-provider@5.5.1", "@ethersproject/abstract-provider@^5.5.0":
   version "5.5.1"
   resolved "https://registry.npmmirror.com/@ethersproject/abstract-provider/download/@ethersproject/abstract-provider-5.5.1.tgz#2f1f6e8a3ab7d378d8ad0b5718460f85649710c5"
@@ -216,6 +240,19 @@
     "@ethersproject/transactions" "^5.5.0"
     "@ethersproject/web" "^5.5.0"
 
+"@ethersproject/abstract-provider@5.6.0", "@ethersproject/abstract-provider@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/abstract-provider/-/abstract-provider-5.6.0.tgz#0c4ac7054650dbd9c476cf5907f588bbb6ef3061"
+  integrity sha512-oPMFlKLN+g+y7a79cLK3WiLcjWFnZQtXWgnLAbHZcN3s7L4v90UHpTOrLk+m3yr0gt+/h9STTM6zrr7PM8uoRw==
+  dependencies:
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/networks" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
+    "@ethersproject/transactions" "^5.6.0"
+    "@ethersproject/web" "^5.6.0"
+
 "@ethersproject/abstract-signer@5.5.0", "@ethersproject/abstract-signer@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/abstract-signer/download/@ethersproject/abstract-signer-5.5.0.tgz#590ff6693370c60ae376bf1c7ada59eb2a8dd08d"
@@ -226,6 +263,17 @@
     "@ethersproject/bytes" "^5.5.0"
     "@ethersproject/logger" "^5.5.0"
     "@ethersproject/properties" "^5.5.0"
+
+"@ethersproject/abstract-signer@5.6.0", "@ethersproject/abstract-signer@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/abstract-signer/-/abstract-signer-5.6.0.tgz#9cd7ae9211c2b123a3b29bf47aab17d4d016e3e7"
+  integrity sha512-WOqnG0NJKtI8n0wWZPReHtaLkDByPL67tn4nBaDAhmVq8sjHTPbCdz4DRhVu/cfTOvfy9w3iq5QZ7BX7zw56BQ==
+  dependencies:
+    "@ethersproject/abstract-provider" "^5.6.0"
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
 
 "@ethersproject/address@5.5.0", "@ethersproject/address@>=5.0.0-beta.128", "@ethersproject/address@^5.0.2", "@ethersproject/address@^5.5.0":
   version "5.5.0"
@@ -238,12 +286,30 @@
     "@ethersproject/logger" "^5.5.0"
     "@ethersproject/rlp" "^5.5.0"
 
+"@ethersproject/address@5.6.0", "@ethersproject/address@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/address/-/address-5.6.0.tgz#13c49836d73e7885fc148ad633afad729da25012"
+  integrity sha512-6nvhYXjbXsHPS+30sHZ+U4VMagFC/9zAk6Gd/h3S21YW4+yfb0WfRtaAIZ4kfM4rrVwqiy284LP0GtL5HXGLxQ==
+  dependencies:
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/keccak256" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/rlp" "^5.6.0"
+
 "@ethersproject/base64@5.5.0", "@ethersproject/base64@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/base64/download/@ethersproject/base64-5.5.0.tgz#881e8544e47ed976930836986e5eb8fab259c090"
   integrity sha1-iB6FROR+2XaTCDaYbl64+rJZwJA=
   dependencies:
     "@ethersproject/bytes" "^5.5.0"
+
+"@ethersproject/base64@5.6.0", "@ethersproject/base64@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/base64/-/base64-5.6.0.tgz#a12c4da2a6fb86d88563216b0282308fc15907c9"
+  integrity sha512-2Neq8wxJ9xHxCF9TUgmKeSh9BXJ6OAxWfeGWvbauPh8FuHEjamgHilllx8KkSd5ErxyHIX7Xv3Fkcud2kY9ezw==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.0"
 
 "@ethersproject/basex@5.5.0", "@ethersproject/basex@^5.5.0":
   version "5.5.0"
@@ -252,6 +318,14 @@
   dependencies:
     "@ethersproject/bytes" "^5.5.0"
     "@ethersproject/properties" "^5.5.0"
+
+"@ethersproject/basex@5.6.0", "@ethersproject/basex@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/basex/-/basex-5.6.0.tgz#9ea7209bf0a1c3ddc2a90f180c3a7f0d7d2e8a69"
+  integrity sha512-qN4T+hQd/Md32MoJpc69rOwLYRUXwjTlhHDIeUkUmiN/JyWkkLLMoG0TqvSQKNqZOMgN5stbUYN6ILC+eD7MEQ==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
 
 "@ethersproject/bignumber@5.5.0", "@ethersproject/bignumber@>=5.0.0-beta.130", "@ethersproject/bignumber@^5.5.0":
   version "5.5.0"
@@ -262,6 +336,15 @@
     "@ethersproject/logger" "^5.5.0"
     bn.js "^4.11.9"
 
+"@ethersproject/bignumber@5.6.0", "@ethersproject/bignumber@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/bignumber/-/bignumber-5.6.0.tgz#116c81b075c57fa765a8f3822648cf718a8a0e26"
+  integrity sha512-VziMaXIUHQlHJmkv1dlcd6GY2PmT0khtAqaMctCIDogxkrarMzA9L94KN1NeXqqOfFD6r0sJT3vCTOFSmZ07DA==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    bn.js "^4.11.9"
+
 "@ethersproject/bytes@5.5.0", "@ethersproject/bytes@>=5.0.0-beta.129", "@ethersproject/bytes@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/bytes/download/@ethersproject/bytes-5.5.0.tgz#cb11c526de657e7b45d2e0f0246fb3b9d29a601c"
@@ -269,12 +352,26 @@
   dependencies:
     "@ethersproject/logger" "^5.5.0"
 
+"@ethersproject/bytes@5.6.0", "@ethersproject/bytes@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/bytes/-/bytes-5.6.0.tgz#81652f2a0e04533575befadce555213c11d8aa20"
+  integrity sha512-3hJPlYemb9V4VLfJF5BfN0+55vltPZSHU3QKUyP9M3Y2TcajbiRrz65UG+xVHOzBereB1b9mn7r12o177xgN7w==
+  dependencies:
+    "@ethersproject/logger" "^5.6.0"
+
 "@ethersproject/constants@5.5.0", "@ethersproject/constants@>=5.0.0-beta.128", "@ethersproject/constants@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/constants/download/@ethersproject/constants-5.5.0.tgz#d2a2cd7d94bd1d58377d1d66c4f53c9be4d0a45e"
   integrity sha1-0qLNfZS9HVg3fR1mxPU8m+TQpF4=
   dependencies:
     "@ethersproject/bignumber" "^5.5.0"
+
+"@ethersproject/constants@5.6.0", "@ethersproject/constants@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/constants/-/constants-5.6.0.tgz#55e3eb0918584d3acc0688e9958b0cedef297088"
+  integrity sha512-SrdaJx2bK0WQl23nSpV/b1aq293Lh0sUaZT/yYKPDKn4tlAbkH96SPJwIhwSwTsoQQZxuh1jnqsKwyymoiBdWA==
+  dependencies:
+    "@ethersproject/bignumber" "^5.6.0"
 
 "@ethersproject/contracts@5.5.0":
   version "5.5.0"
@@ -291,6 +388,22 @@
     "@ethersproject/logger" "^5.5.0"
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/transactions" "^5.5.0"
+
+"@ethersproject/contracts@5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/contracts/-/contracts-5.6.0.tgz#60f2cfc7addd99a865c6c8cfbbcec76297386067"
+  integrity sha512-74Ge7iqTDom0NX+mux8KbRUeJgu1eHZ3iv6utv++sLJG80FVuU9HnHeKVPfjd9s3woFhaFoQGf3B3iH/FrQmgw==
+  dependencies:
+    "@ethersproject/abi" "^5.6.0"
+    "@ethersproject/abstract-provider" "^5.6.0"
+    "@ethersproject/abstract-signer" "^5.6.0"
+    "@ethersproject/address" "^5.6.0"
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/constants" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
+    "@ethersproject/transactions" "^5.6.0"
 
 "@ethersproject/hardware-wallets@^5.5.0":
   version "5.5.0"
@@ -318,6 +431,20 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
+"@ethersproject/hash@5.6.0", "@ethersproject/hash@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/hash/-/hash-5.6.0.tgz#d24446a5263e02492f9808baa99b6e2b4c3429a2"
+  integrity sha512-fFd+k9gtczqlr0/BruWLAu7UAOas1uRRJvOR84uDf4lNZ+bTkGl366qvniUZHKtlqxBRU65MkOobkmvmpHU+jA==
+  dependencies:
+    "@ethersproject/abstract-signer" "^5.6.0"
+    "@ethersproject/address" "^5.6.0"
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/keccak256" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
+    "@ethersproject/strings" "^5.6.0"
+
 "@ethersproject/hdnode@5.5.0", "@ethersproject/hdnode@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/hdnode/download/@ethersproject/hdnode-5.5.0.tgz#4a04e28f41c546f7c978528ea1575206a200ddf6"
@@ -335,6 +462,24 @@
     "@ethersproject/strings" "^5.5.0"
     "@ethersproject/transactions" "^5.5.0"
     "@ethersproject/wordlists" "^5.5.0"
+
+"@ethersproject/hdnode@5.6.0", "@ethersproject/hdnode@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/hdnode/-/hdnode-5.6.0.tgz#9dcbe8d629bbbcf144f2cae476337fe92d320998"
+  integrity sha512-61g3Jp3nwDqJcL/p4nugSyLrpl/+ChXIOtCEM8UDmWeB3JCAt5FoLdOMXQc3WWkc0oM2C0aAn6GFqqMcS/mHTw==
+  dependencies:
+    "@ethersproject/abstract-signer" "^5.6.0"
+    "@ethersproject/basex" "^5.6.0"
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/pbkdf2" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
+    "@ethersproject/sha2" "^5.6.0"
+    "@ethersproject/signing-key" "^5.6.0"
+    "@ethersproject/strings" "^5.6.0"
+    "@ethersproject/transactions" "^5.6.0"
+    "@ethersproject/wordlists" "^5.6.0"
 
 "@ethersproject/json-wallets@5.5.0", "@ethersproject/json-wallets@^5.5.0":
   version "5.5.0"
@@ -355,6 +500,25 @@
     aes-js "3.0.0"
     scrypt-js "3.0.1"
 
+"@ethersproject/json-wallets@5.6.0", "@ethersproject/json-wallets@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/json-wallets/-/json-wallets-5.6.0.tgz#4c2fc27f17e36c583e7a252fb938bc46f98891e5"
+  integrity sha512-fmh86jViB9r0ibWXTQipxpAGMiuxoqUf78oqJDlCAJXgnJF024hOOX7qVgqsjtbeoxmcLwpPsXNU0WEe/16qPQ==
+  dependencies:
+    "@ethersproject/abstract-signer" "^5.6.0"
+    "@ethersproject/address" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/hdnode" "^5.6.0"
+    "@ethersproject/keccak256" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/pbkdf2" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
+    "@ethersproject/random" "^5.6.0"
+    "@ethersproject/strings" "^5.6.0"
+    "@ethersproject/transactions" "^5.6.0"
+    aes-js "3.0.0"
+    scrypt-js "3.0.1"
+
 "@ethersproject/keccak256@5.5.0", "@ethersproject/keccak256@>=5.0.0-beta.127", "@ethersproject/keccak256@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/keccak256/download/@ethersproject/keccak256-5.5.0.tgz?cache=0&sync_timestamp=1634693497878&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2F%40ethersproject%2Fkeccak256%2Fdownload%2F%40ethersproject%2Fkeccak256-5.5.0.tgz#e4b1f9d7701da87c564ffe336f86dcee82983492"
@@ -363,10 +527,23 @@
     "@ethersproject/bytes" "^5.5.0"
     js-sha3 "0.8.0"
 
+"@ethersproject/keccak256@5.6.0", "@ethersproject/keccak256@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/keccak256/-/keccak256-5.6.0.tgz#fea4bb47dbf8f131c2e1774a1cecbfeb9d606459"
+  integrity sha512-tk56BJ96mdj/ksi7HWZVWGjCq0WVl/QvfhFQNeL8fxhBlGoP+L80uDCiQcpJPd+2XxkivS3lwRm3E0CXTfol0w==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.0"
+    js-sha3 "0.8.0"
+
 "@ethersproject/logger@5.5.0", "@ethersproject/logger@>=5.0.0-beta.129", "@ethersproject/logger@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/logger/download/@ethersproject/logger-5.5.0.tgz#0c2caebeff98e10aefa5aef27d7441c7fd18cf5d"
   integrity sha1-DCyuvv+Y4Qrvpa7yfXRBx/0Yz10=
+
+"@ethersproject/logger@5.6.0", "@ethersproject/logger@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/logger/-/logger-5.6.0.tgz#d7db1bfcc22fd2e4ab574cba0bb6ad779a9a3e7a"
+  integrity sha512-BiBWllUROH9w+P21RzoxJKzqoqpkyM1pRnEKG69bulE9TSQD8SAIvTQqIMZmmCO8pUNkgLP1wndX1gKghSpBmg==
 
 "@ethersproject/networks@5.5.1", "@ethersproject/networks@^5.5.0":
   version "5.5.1"
@@ -374,6 +551,13 @@
   integrity sha512-tYRDM4zZtSUcKnD4UMuAlj7SeXH/k5WC4SP2u1Pn57++JdXHkRu2zwNkgNogZoxHzhm9Q6qqurDBVptHOsW49Q==
   dependencies:
     "@ethersproject/logger" "^5.5.0"
+
+"@ethersproject/networks@5.6.0", "@ethersproject/networks@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/networks/-/networks-5.6.0.tgz#486d03fff29b4b6b5414d47a232ded09fe10de5e"
+  integrity sha512-DaVzgyThzHgSDLuURhvkp4oviGoGe9iTZW4jMEORHDRCgSZ9K9THGFKqL+qGXqPAYLEgZTf5z2w56mRrPR1MjQ==
+  dependencies:
+    "@ethersproject/logger" "^5.6.0"
 
 "@ethersproject/pbkdf2@5.5.0", "@ethersproject/pbkdf2@^5.5.0":
   version "5.5.0"
@@ -383,12 +567,27 @@
     "@ethersproject/bytes" "^5.5.0"
     "@ethersproject/sha2" "^5.5.0"
 
+"@ethersproject/pbkdf2@5.6.0", "@ethersproject/pbkdf2@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/pbkdf2/-/pbkdf2-5.6.0.tgz#04fcc2d7c6bff88393f5b4237d906a192426685a"
+  integrity sha512-Wu1AxTgJo3T3H6MIu/eejLFok9TYoSdgwRr5oGY1LTLfmGesDoSx05pemsbrPT2gG4cQME+baTSCp5sEo2erZQ==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/sha2" "^5.6.0"
+
 "@ethersproject/properties@5.5.0", "@ethersproject/properties@>=5.0.0-beta.131", "@ethersproject/properties@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/properties/download/@ethersproject/properties-5.5.0.tgz#61f00f2bb83376d2071baab02245f92070c59995"
   integrity sha1-YfAPK7gzdtIHG6qwIkX5IHDFmZU=
   dependencies:
     "@ethersproject/logger" "^5.5.0"
+
+"@ethersproject/properties@5.6.0", "@ethersproject/properties@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/properties/-/properties-5.6.0.tgz#38904651713bc6bdd5bdd1b0a4287ecda920fa04"
+  integrity sha512-szoOkHskajKePTJSZ46uHUWWkbv7TzP2ypdEK6jGMqJaEt2sb0jCgfBo0gH0m2HBpRixMuJ6TBRaQCF7a9DoCg==
+  dependencies:
+    "@ethersproject/logger" "^5.6.0"
 
 "@ethersproject/providers@5.5.1":
   version "5.5.1"
@@ -415,6 +614,31 @@
     bech32 "1.1.4"
     ws "7.4.6"
 
+"@ethersproject/providers@5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/providers/-/providers-5.6.0.tgz#08ec8e2666771e3a347e66c8f664a2af97366534"
+  integrity sha512-6+5PKXTWAttJWFWF8+xCDTCa2/dtq9BNrdKQHGl0IyIOwj99vM6OeThmIRcsIAzIOb8m0XS6w+1KFZwrf3j9nw==
+  dependencies:
+    "@ethersproject/abstract-provider" "^5.6.0"
+    "@ethersproject/abstract-signer" "^5.6.0"
+    "@ethersproject/address" "^5.6.0"
+    "@ethersproject/basex" "^5.6.0"
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/constants" "^5.6.0"
+    "@ethersproject/hash" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/networks" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
+    "@ethersproject/random" "^5.6.0"
+    "@ethersproject/rlp" "^5.6.0"
+    "@ethersproject/sha2" "^5.6.0"
+    "@ethersproject/strings" "^5.6.0"
+    "@ethersproject/transactions" "^5.6.0"
+    "@ethersproject/web" "^5.6.0"
+    bech32 "1.1.4"
+    ws "7.4.6"
+
 "@ethersproject/random@5.5.0", "@ethersproject/random@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/random/download/@ethersproject/random-5.5.0.tgz#305ed9e033ca537735365ac12eed88580b0f81f9"
@@ -423,6 +647,14 @@
     "@ethersproject/bytes" "^5.5.0"
     "@ethersproject/logger" "^5.5.0"
 
+"@ethersproject/random@5.6.0", "@ethersproject/random@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/random/-/random-5.6.0.tgz#1505d1ab6a250e0ee92f436850fa3314b2cb5ae6"
+  integrity sha512-si0PLcLjq+NG/XHSZz90asNf+YfKEqJGVdxoEkSukzbnBgC8rydbgbUgBbBGLeHN4kAJwUFEKsu3sCXT93YMsw==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+
 "@ethersproject/rlp@5.5.0", "@ethersproject/rlp@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/rlp/download/@ethersproject/rlp-5.5.0.tgz#530f4f608f9ca9d4f89c24ab95db58ab56ab99a0"
@@ -430,6 +662,14 @@
   dependencies:
     "@ethersproject/bytes" "^5.5.0"
     "@ethersproject/logger" "^5.5.0"
+
+"@ethersproject/rlp@5.6.0", "@ethersproject/rlp@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/rlp/-/rlp-5.6.0.tgz#55a7be01c6f5e64d6e6e7edb6061aa120962a717"
+  integrity sha512-dz9WR1xpcTL+9DtOT/aDO+YyxSSdO8YIS0jyZwHHSlAmnxA6cKU3TrTd4Xc/bHayctxTgGLYNuVVoiXE4tTq1g==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
 
 "@ethersproject/sha2@5.5.0", "@ethersproject/sha2@^5.5.0":
   version "5.5.0"
@@ -440,6 +680,15 @@
     "@ethersproject/logger" "^5.5.0"
     hash.js "1.1.7"
 
+"@ethersproject/sha2@5.6.0", "@ethersproject/sha2@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/sha2/-/sha2-5.6.0.tgz#364c4c11cc753bda36f31f001628706ebadb64d9"
+  integrity sha512-1tNWCPFLu1n3JM9t4/kytz35DkuF9MxqkGGEHNauEbaARdm2fafnOyw1s0tIQDPKF/7bkP1u3dbrmjpn5CelyA==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    hash.js "1.1.7"
+
 "@ethersproject/signing-key@5.5.0", "@ethersproject/signing-key@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/signing-key/download/@ethersproject/signing-key-5.5.0.tgz#2aa37169ce7e01e3e80f2c14325f624c29cedbe0"
@@ -448,6 +697,18 @@
     "@ethersproject/bytes" "^5.5.0"
     "@ethersproject/logger" "^5.5.0"
     "@ethersproject/properties" "^5.5.0"
+    bn.js "^4.11.9"
+    elliptic "6.5.4"
+    hash.js "1.1.7"
+
+"@ethersproject/signing-key@5.6.0", "@ethersproject/signing-key@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/signing-key/-/signing-key-5.6.0.tgz#4f02e3fb09e22b71e2e1d6dc4bcb5dafa69ce042"
+  integrity sha512-S+njkhowmLeUu/r7ir8n78OUKx63kBdMCPssePS89So1TH4hZqnWFsThEd/GiXYp9qMxVrydf7KdM9MTGPFukA==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
     bn.js "^4.11.9"
     elliptic "6.5.4"
     hash.js "1.1.7"
@@ -464,6 +725,18 @@
     "@ethersproject/sha2" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
+"@ethersproject/solidity@5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/solidity/-/solidity-5.6.0.tgz#64657362a596bf7f5630bdc921c07dd78df06dc3"
+  integrity sha512-YwF52vTNd50kjDzqKaoNNbC/r9kMDPq3YzDWmsjFTRBcIF1y4JCQJ8gB30wsTfHbaxgxelI5BfxQSxD/PbJOww==
+  dependencies:
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/keccak256" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/sha2" "^5.6.0"
+    "@ethersproject/strings" "^5.6.0"
+
 "@ethersproject/strings@5.5.0", "@ethersproject/strings@>=5.0.0-beta.130", "@ethersproject/strings@^5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/strings/download/@ethersproject/strings-5.5.0.tgz#e6784d00ec6c57710755699003bc747e98c5d549"
@@ -472,6 +745,15 @@
     "@ethersproject/bytes" "^5.5.0"
     "@ethersproject/constants" "^5.5.0"
     "@ethersproject/logger" "^5.5.0"
+
+"@ethersproject/strings@5.6.0", "@ethersproject/strings@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/strings/-/strings-5.6.0.tgz#9891b26709153d996bf1303d39a7f4bc047878fd"
+  integrity sha512-uv10vTtLTZqrJuqBZR862ZQjTIa724wGPWQqZrofaPI/kUsf53TBG0I0D+hQ1qyNtllbNzaW+PDPHHUI6/65Mg==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/constants" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
 
 "@ethersproject/transactions@5.5.0", "@ethersproject/transactions@^5.0.0-beta.135", "@ethersproject/transactions@^5.5.0":
   version "5.5.0"
@@ -488,6 +770,21 @@
     "@ethersproject/rlp" "^5.5.0"
     "@ethersproject/signing-key" "^5.5.0"
 
+"@ethersproject/transactions@5.6.0", "@ethersproject/transactions@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/transactions/-/transactions-5.6.0.tgz#4b594d73a868ef6e1529a2f8f94a785e6791ae4e"
+  integrity sha512-4HX+VOhNjXHZyGzER6E/LVI2i6lf9ejYeWD6l4g50AdmimyuStKc39kvKf1bXWQMg7QNVh+uC7dYwtaZ02IXeg==
+  dependencies:
+    "@ethersproject/address" "^5.6.0"
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/constants" "^5.6.0"
+    "@ethersproject/keccak256" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
+    "@ethersproject/rlp" "^5.6.0"
+    "@ethersproject/signing-key" "^5.6.0"
+
 "@ethersproject/units@5.5.0":
   version "5.5.0"
   resolved "https://registry.npmmirror.com/@ethersproject/units/download/@ethersproject/units-5.5.0.tgz#104d02db5b5dc42cc672cc4587bafb87a95ee45e"
@@ -496,6 +793,15 @@
     "@ethersproject/bignumber" "^5.5.0"
     "@ethersproject/constants" "^5.5.0"
     "@ethersproject/logger" "^5.5.0"
+
+"@ethersproject/units@5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/units/-/units-5.6.0.tgz#e5cbb1906988f5740254a21b9ded6bd51e826d9c"
+  integrity sha512-tig9x0Qmh8qbo1w8/6tmtyrm/QQRviBh389EQ+d8fP4wDsBrJBf08oZfoiz1/uenKK9M78yAP4PoR7SsVoTjsw==
+  dependencies:
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/constants" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
 
 "@ethersproject/wallet@5.5.0":
   version "5.5.0"
@@ -518,6 +824,27 @@
     "@ethersproject/transactions" "^5.5.0"
     "@ethersproject/wordlists" "^5.5.0"
 
+"@ethersproject/wallet@5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/wallet/-/wallet-5.6.0.tgz#33d11a806d783864208f348709a5a3badac8e22a"
+  integrity sha512-qMlSdOSTyp0MBeE+r7SUhr1jjDlC1zAXB8VD84hCnpijPQiSNbxr6GdiLXxpUs8UKzkDiNYYC5DRI3MZr+n+tg==
+  dependencies:
+    "@ethersproject/abstract-provider" "^5.6.0"
+    "@ethersproject/abstract-signer" "^5.6.0"
+    "@ethersproject/address" "^5.6.0"
+    "@ethersproject/bignumber" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/hash" "^5.6.0"
+    "@ethersproject/hdnode" "^5.6.0"
+    "@ethersproject/json-wallets" "^5.6.0"
+    "@ethersproject/keccak256" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
+    "@ethersproject/random" "^5.6.0"
+    "@ethersproject/signing-key" "^5.6.0"
+    "@ethersproject/transactions" "^5.6.0"
+    "@ethersproject/wordlists" "^5.6.0"
+
 "@ethersproject/web@5.5.1", "@ethersproject/web@^5.5.0":
   version "5.5.1"
   resolved "https://registry.npmmirror.com/@ethersproject/web/download/@ethersproject/web-5.5.1.tgz#cfcc4a074a6936c657878ac58917a61341681316"
@@ -528,6 +855,17 @@
     "@ethersproject/logger" "^5.5.0"
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
+
+"@ethersproject/web@5.6.0", "@ethersproject/web@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/web/-/web-5.6.0.tgz#4bf8b3cbc17055027e1a5dd3c357e37474eaaeb8"
+  integrity sha512-G/XHj0hV1FxI2teHRfCGvfBUHFmU+YOSbCxlAMqJklxSa7QMiHFQfAxvwY2PFqgvdkxEKwRNr/eCjfAPEm2Ctg==
+  dependencies:
+    "@ethersproject/base64" "^5.6.0"
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
+    "@ethersproject/strings" "^5.6.0"
 
 "@ethersproject/wordlists@5.5.0", "@ethersproject/wordlists@^5.5.0":
   version "5.5.0"
@@ -540,10 +878,28 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
+"@ethersproject/wordlists@5.6.0", "@ethersproject/wordlists@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/@ethersproject/wordlists/-/wordlists-5.6.0.tgz#79e62c5276e091d8575f6930ba01a29218ded032"
+  integrity sha512-q0bxNBfIX3fUuAo9OmjlEYxP40IB8ABgb7HjEZCL5IKubzV3j30CWi2rqQbjTS2HfoyQbfINoKcTVWP4ejwR7Q==
+  dependencies:
+    "@ethersproject/bytes" "^5.6.0"
+    "@ethersproject/hash" "^5.6.0"
+    "@ethersproject/logger" "^5.6.0"
+    "@ethersproject/properties" "^5.6.0"
+    "@ethersproject/strings" "^5.6.0"
+
 "@ledgerhq/cryptoassets@^5.27.2":
   version "5.53.0"
   resolved "https://registry.npmmirror.com/@ledgerhq/cryptoassets/download/@ledgerhq/cryptoassets-5.53.0.tgz#11dcc93211960c6fd6620392e4dd91896aaabe58"
   integrity sha1-EdzJMhGWDG/WYgOS5N2RiWqqvlg=
+  dependencies:
+    invariant "2"
+
+"@ledgerhq/cryptoassets@^6.26.1":
+  version "6.26.1"
+  resolved "https://registry.npmmirror.com/@ledgerhq/cryptoassets/-/cryptoassets-6.26.1.tgz#de810a62199913aeaf36e52b0f826cc0d7289e1e"
+  integrity sha512-p8DG+E7KO32O0gZc1Q9bBMzKc8c0jMwAO3X7Xn7DV8DvYwMd2WjjrPreBsQdEvm9ku4iz6AUXbLRWI/xwxE5sA==
   dependencies:
     invariant "2"
 
@@ -557,10 +913,25 @@
     rxjs "6"
     semver "^7.3.5"
 
+"@ledgerhq/devices@^6.24.1":
+  version "6.24.1"
+  resolved "https://registry.npmmirror.com/@ledgerhq/devices/-/devices-6.24.1.tgz#9696d7831aa1a1a8204cdfa55df13f892b7da162"
+  integrity sha512-6SNXWXxojUF6WKXMVIbRs15Mveg+9k0RKJK/PKlwZh929Lnr/NcbONWdwPjWKZAp1g82eEPT4jIkG6qc4QXlcA==
+  dependencies:
+    "@ledgerhq/errors" "^6.10.0"
+    "@ledgerhq/logs" "^6.10.0"
+    rxjs "6"
+    semver "^7.3.5"
+
 "@ledgerhq/errors@^5.26.0", "@ledgerhq/errors@^5.50.0":
   version "5.50.0"
   resolved "https://registry.npmmirror.com/@ledgerhq/errors/download/@ledgerhq/errors-5.50.0.tgz#e3a6834cb8c19346efca214c1af84ed28e69dad9"
   integrity sha1-46aDTLjBk0bvyiFMGvhO0o5p2tk=
+
+"@ledgerhq/errors@^6.10.0":
+  version "6.10.0"
+  resolved "https://registry.npmmirror.com/@ledgerhq/errors/-/errors-6.10.0.tgz#dda9127b65f653fbb2f74a55e8f0e550d69de6e4"
+  integrity sha512-fQFnl2VIXh9Yd41lGjReCeK+Q2hwxQJvLZfqHnKqWapTz68NHOv5QcI0OHuZVNEbv0xhgdLhi5b65kgYeQSUVg==
 
 "@ledgerhq/hw-app-eth@5.27.2":
   version "5.27.2"
@@ -573,6 +944,20 @@
     bignumber.js "^9.0.1"
     rlp "^2.2.6"
 
+"@ledgerhq/hw-app-eth@^6.24.0":
+  version "6.26.1"
+  resolved "https://registry.npmmirror.com/@ledgerhq/hw-app-eth/-/hw-app-eth-6.26.1.tgz#c807087a563c4e1fb539116344ce114f5c84286b"
+  integrity sha512-maA5h+i92uoB+LXhkix1ZZWqI1qAxLBI5vEncuAbJubIQaJVv/BIlR3oAlZ+slNcq+9QUZ8vnzjRksn67kvoYA==
+  dependencies:
+    "@ethersproject/abi" "^5.5.0"
+    "@ethersproject/rlp" "^5.5.0"
+    "@ledgerhq/cryptoassets" "^6.26.1"
+    "@ledgerhq/errors" "^6.10.0"
+    "@ledgerhq/hw-transport" "^6.24.1"
+    "@ledgerhq/logs" "^6.10.0"
+    axios "^0.26.0"
+    bignumber.js "^9.0.2"
+
 "@ledgerhq/hw-transport-node-hid-noevents@^5.26.0":
   version "5.51.1"
   resolved "https://registry.npmmirror.com/@ledgerhq/hw-transport-node-hid-noevents/download/@ledgerhq/hw-transport-node-hid-noevents-5.51.1.tgz#71f37f812e448178ad0bcc2258982150d211c1ab"
@@ -582,6 +967,17 @@
     "@ledgerhq/errors" "^5.50.0"
     "@ledgerhq/hw-transport" "^5.51.1"
     "@ledgerhq/logs" "^5.50.0"
+    node-hid "2.1.1"
+
+"@ledgerhq/hw-transport-node-hid-noevents@^6.24.1":
+  version "6.24.1"
+  resolved "https://registry.npmmirror.com/@ledgerhq/hw-transport-node-hid-noevents/-/hw-transport-node-hid-noevents-6.24.1.tgz#22ca8e650fd262de9c9a6fe1f917fce4ccbfa6ef"
+  integrity sha512-z3uXCU13oayRX51MOaTREdrn83ujrBkccdXn3ljdMy4H3pmAvG6QGn4m30gursEUUJkogA6dkcXs3G8IRfOdxA==
+  dependencies:
+    "@ledgerhq/devices" "^6.24.1"
+    "@ledgerhq/errors" "^6.10.0"
+    "@ledgerhq/hw-transport" "^6.24.1"
+    "@ledgerhq/logs" "^6.10.0"
     node-hid "2.1.1"
 
 "@ledgerhq/hw-transport-node-hid@5.26.0":
@@ -597,6 +993,20 @@
     lodash "^4.17.20"
     node-hid "1.3.0"
     usb "^1.6.3"
+
+"@ledgerhq/hw-transport-node-hid@^6.20.0":
+  version "6.24.1"
+  resolved "https://registry.npmmirror.com/@ledgerhq/hw-transport-node-hid/-/hw-transport-node-hid-6.24.1.tgz#5374a831575c9152c89abc736eb4523ff7b945f9"
+  integrity sha512-onbxunq8FsiY2sVRR+jRCjC1nx376ANuAtnQsmoHsgxONOVTb5asXWWOV4Cjm8y7RZTCtDw3d1fbziEGRhwiqA==
+  dependencies:
+    "@ledgerhq/devices" "^6.24.1"
+    "@ledgerhq/errors" "^6.10.0"
+    "@ledgerhq/hw-transport" "^6.24.1"
+    "@ledgerhq/hw-transport-node-hid-noevents" "^6.24.1"
+    "@ledgerhq/logs" "^6.10.0"
+    lodash "^4.17.21"
+    node-hid "2.1.1"
+    usb "^1.7.0"
 
 "@ledgerhq/hw-transport-u2f@5.26.0":
   version "5.26.0"
@@ -626,10 +1036,24 @@
     "@ledgerhq/errors" "^5.50.0"
     events "^3.3.0"
 
+"@ledgerhq/hw-transport@^6.24.1":
+  version "6.24.1"
+  resolved "https://registry.npmmirror.com/@ledgerhq/hw-transport/-/hw-transport-6.24.1.tgz#5e787268e6d5ce4f9f0d53b0d520c1f071c2d1ae"
+  integrity sha512-cOhxkQJrN7DvPFLLXAS2nqAZ7NIDaFqnbgu9ugTccgbJm2/z7ClRZX/uQoI4FscswZ47MuJQdXqz4nK48phteQ==
+  dependencies:
+    "@ledgerhq/devices" "^6.24.1"
+    "@ledgerhq/errors" "^6.10.0"
+    events "^3.3.0"
+
 "@ledgerhq/logs@^5.26.0", "@ledgerhq/logs@^5.50.0":
   version "5.50.0"
   resolved "https://registry.npmmirror.com/@ledgerhq/logs/download/@ledgerhq/logs-5.50.0.tgz#29c6419e8379d496ab6d0426eadf3c4d100cd186"
   integrity sha1-KcZBnoN51JarbQQm6t88TRAM0YY=
+
+"@ledgerhq/logs@^6.10.0":
+  version "6.10.0"
+  resolved "https://registry.npmmirror.com/@ledgerhq/logs/-/logs-6.10.0.tgz#c012c1ecc1a0e53d50e6af381618dca5268461c1"
+  integrity sha512-lLseUPEhSFUXYTKj6q7s2O3s2vW2ebgA11vMAlKodXGf5AFw4zUoEbTz9CoFOC9jS6xY4Qr8BmRnxP/odT4Uuw==
 
 "@nomiclabs/hardhat-ethers@^2.0.0":
   version "2.0.3"
@@ -1437,6 +1861,13 @@ aws4@^1.8.0:
   resolved "https://registry.npm.taobao.org/aws4/download/aws4-1.11.0.tgz?cache=0&sync_timestamp=1604101244098&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Faws4%2Fdownload%2Faws4-1.11.0.tgz#d61f46d83b2519250e2784daf5b09479a8b41c59"
   integrity sha1-1h9G2DslGSUOJ4Ta9bCUeai0HFk=
 
+axios@^0.26.0:
+  version "0.26.1"
+  resolved "https://registry.npmmirror.com/axios/-/axios-0.26.1.tgz#1ede41c51fcf51bbbd6fd43669caaa4f0495aaa9"
+  integrity sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==
+  dependencies:
+    follow-redirects "^1.14.8"
+
 babel-code-frame@^6.26.0:
   version "6.26.0"
   resolved "https://registry.nlark.com/babel-code-frame/download/babel-code-frame-6.26.0.tgz#63fd43f7dc1e3bb7ce35947db8fe369a3f58c74b"
@@ -2019,6 +2450,11 @@ bignumber.js@^9.0.0, bignumber.js@^9.0.1:
   version "9.0.1"
   resolved "https://registry.npm.taobao.org/bignumber.js/download/bignumber.js-9.0.1.tgz#8d7ba124c882bfd8e43260c67475518d0689e4e5"
   integrity sha1-jXuhJMiCv9jkMmDGdHVRjQaJ5OU=
+
+bignumber.js@^9.0.2:
+  version "9.0.2"
+  resolved "https://registry.npmmirror.com/bignumber.js/-/bignumber.js-9.0.2.tgz#71c6c6bed38de64e24a65ebe16cfcf23ae693673"
+  integrity sha512-GAcQvbpsM0pUb0zw1EI0KhQEZ+lRwR5fYaAp3vPOYuP7aDvGy6cVN6XHLauvF8SOga2y0dcLcjt3iQDTSEliyw==
 
 binary-extensions@^2.0.0:
   version "2.2.0"
@@ -3867,6 +4303,42 @@ ethers@^5.0.1, ethers@^5.0.2, ethers@^5.4.4, ethers@^5.4.7, ethers@^5.5.0:
     "@ethersproject/web" "5.5.1"
     "@ethersproject/wordlists" "5.5.0"
 
+ethers@^5.5.4:
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/ethers/-/ethers-5.6.0.tgz#924eb965dc03963fad0a09ce687efdf49aca3b45"
+  integrity sha512-00FP71jt6bW3ndO5DhgH9mLIZhoCGnAKFLu8qig5KmV03ubEChKf2ilB3g6fX512tTYo+tSMDJ5WpCJWdBHkBQ==
+  dependencies:
+    "@ethersproject/abi" "5.6.0"
+    "@ethersproject/abstract-provider" "5.6.0"
+    "@ethersproject/abstract-signer" "5.6.0"
+    "@ethersproject/address" "5.6.0"
+    "@ethersproject/base64" "5.6.0"
+    "@ethersproject/basex" "5.6.0"
+    "@ethersproject/bignumber" "5.6.0"
+    "@ethersproject/bytes" "5.6.0"
+    "@ethersproject/constants" "5.6.0"
+    "@ethersproject/contracts" "5.6.0"
+    "@ethersproject/hash" "5.6.0"
+    "@ethersproject/hdnode" "5.6.0"
+    "@ethersproject/json-wallets" "5.6.0"
+    "@ethersproject/keccak256" "5.6.0"
+    "@ethersproject/logger" "5.6.0"
+    "@ethersproject/networks" "5.6.0"
+    "@ethersproject/pbkdf2" "5.6.0"
+    "@ethersproject/properties" "5.6.0"
+    "@ethersproject/providers" "5.6.0"
+    "@ethersproject/random" "5.6.0"
+    "@ethersproject/rlp" "5.6.0"
+    "@ethersproject/sha2" "5.6.0"
+    "@ethersproject/signing-key" "5.6.0"
+    "@ethersproject/solidity" "5.6.0"
+    "@ethersproject/strings" "5.6.0"
+    "@ethersproject/transactions" "5.6.0"
+    "@ethersproject/units" "5.6.0"
+    "@ethersproject/wallet" "5.6.0"
+    "@ethersproject/web" "5.6.0"
+    "@ethersproject/wordlists" "5.6.0"
+
 ethjs-unit@0.1.6:
   version "0.1.6"
   resolved "https://registry.npm.taobao.org/ethjs-unit/download/ethjs-unit-0.1.6.tgz#c665921e476e87bce2a9d588a6fe0405b2c41699"
@@ -4183,6 +4655,11 @@ follow-redirects@^1.12.1:
   version "1.14.5"
   resolved "https://registry.npmmirror.com/follow-redirects/download/follow-redirects-1.14.5.tgz?cache=0&sync_timestamp=1635857764332&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Ffollow-redirects%2Fdownload%2Ffollow-redirects-1.14.5.tgz#f09a5848981d3c772b5392309778523f8d85c381"
   integrity sha1-8JpYSJgdPHcrU5Iwl3hSP42Fw4E=
+
+follow-redirects@^1.14.8:
+  version "1.14.9"
+  resolved "https://registry.npmmirror.com/follow-redirects/-/follow-redirects-1.14.9.tgz#dd4ea157de7bfaf9ea9b3fbd85aa16951f78d8d7"
+  integrity sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==
 
 for-each@^0.3.3, for-each@~0.3.3:
   version "0.3.3"
@@ -5839,7 +6316,7 @@ lodash@4.17.20:
   resolved "https://registry.nlark.com/lodash/download/lodash-4.17.20.tgz#b44a9b6297bcb698f1c51a3545a2b3b368d59c52"
   integrity sha1-tEqbYpe8tpjxxRo1RaKzs2jVnFI=
 
-lodash@^4.17.11, lodash@^4.17.12, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.4:
+lodash@^4.17.11, lodash@^4.17.12, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.21, lodash@^4.17.4:
   version "4.17.21"
   resolved "https://registry.nlark.com/lodash/download/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha1-Z5WRxWTDv/quhFTPCz3zcMPWkRw=
@@ -8753,6 +9230,14 @@ usb@^1.6.3:
   version "1.9.1"
   resolved "https://registry.npmmirror.com/usb/download/usb-1.9.1.tgz#092a12455c8c21e4f0b7f4b3b0d37436f32f0ef7"
   integrity sha512-T6DZbJAFNcxhY1FzaYdXhV2oqoRlvLhtSSmnbFAqyCxahUkc+g0BPZVXv7hIeQQxDCAQnr4Ia8bfOk1JlzNzzw==
+  dependencies:
+    node-addon-api "^4.2.0"
+    node-gyp-build "^4.3.0"
+
+usb@^1.7.0:
+  version "1.9.2"
+  resolved "https://registry.npmmirror.com/usb/-/usb-1.9.2.tgz#fb6b36f744ecc707a196c45a6ec72442cb6f2b73"
+  integrity sha512-dryNz030LWBPAf6gj8vyq0Iev3vPbCLHCT8dBw3gQRXRzVNsIdeuU+VjPp3ksmSPkeMAl1k+kQ14Ij0QHyeiAg==
   dependencies:
     node-addon-api "^4.2.0"
     node-gyp-build "^4.3.0"

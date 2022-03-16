@@ -32,20 +32,28 @@ export default {
       accounts: [process.env.ROPSTEN_DEPLOY_ACCOUNT]
     },
     rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMYAPI_API_KEY}`,
+      accounts: [process.env.ROPSTEN_DEPLOY_ACCOUNT]
     },
     goerli: {
       url: `https://eth-goerli.alchemyapi.io/v2/${process.env.ALCHEMYAPI_API_KEY}`,
       accounts: [process.env.ROPSTEN_DEPLOY_ACCOUNT]
     },
     kovan: {
-      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      url: `https://eth-kovan.alchemyapi.io/v2/${process.env.ALCHEMYAPI_API_KEY}`,
+      accounts: [process.env.ROPSTEN_DEPLOY_ACCOUNT]
+    },
+    mumbai: {
+      url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.ALCHEMYAPI_API_KEY}`,
+      accounts: [process.env.ROPSTEN_DEPLOY_ACCOUNT],
+      chainId: 80001
     },
   },
   etherscan: {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    // apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: process.env.POLYGONSCAN_API_KEY,
   },
   mocha: {
     timeout: 150000

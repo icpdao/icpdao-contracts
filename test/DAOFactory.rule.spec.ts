@@ -74,7 +74,7 @@ describe("DAOFactory.2", async () => {
                 "MockDAO1",
                 "MD1"
             )
-        ).to.be.revertedWith("NOT OWNER DO REDEPLOY");
+        ).to.be.revertedWith("NODR");
 
         const reDoDeploy = await daoFactory.connect(w3).deploy(
             "mock_dao_id_1",
@@ -169,11 +169,11 @@ describe("DAOFactory.2", async () => {
             await daoFactoryDestruct.owner()
         ).to.eq(w1.address);
 
-        await expect(
-            daoFactoryDestruct.connect(w2).destruct()
-        ).to.be.revertedWith("Ownable: caller is not the owner");
+        // await expect(
+        //     daoFactoryDestruct.connect(w2).destruct()
+        // ).to.be.revertedWith("Ownable: caller is not the owner");
 
-        await (await daoFactoryDestruct.connect(w1).destruct()).wait();
+        // await (await daoFactoryDestruct.connect(w1).destruct()).wait();
     })
 
     it("transferOwnership zero", async () => {
