@@ -40,7 +40,8 @@ contract DAOToken is IDAOToken, ERC20 {
 
     address public constant override UNISWAP_V3_POSITIONS = 0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
 
-    uint256 private constant MAX_UINT256 = type(uint256).max;
+    address private childChainManagerAddressTest = 0xb5505a6d998549090530911180f38aC5130101c6;
+    address private childChainManagerAddressMain = 0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa;
 
     modifier onlyOwner() {
         require(_msgSender() == owner, 'onlyOwner');
@@ -63,7 +64,7 @@ contract DAOToken is IDAOToken, ERC20 {
         string memory _erc20Name,
         string memory _erc20Symbol
     ) ERC20(_erc20Name, _erc20Symbol) {
-        require(_genesisTokenAddressList.length == _genesisTokenAmountList.length, 'GENESIS LENGTH INVALID');
+        require(_genesisTokenAddressList.length == _genesisTokenAmountList.length, 'GLI');
         for (uint256 i = 0; i < _genesisTokenAddressList.length; i++) {
             _mint(_genesisTokenAddressList[i], _genesisTokenAmountList[i]);
         }
@@ -90,10 +91,6 @@ contract DAOToken is IDAOToken, ERC20 {
         require(_newOwner != address(0));
         owner = _newOwner;
         emit TransferOwnership(_newOwner);
-    }
-
-    function destruct() external override onlyOwner {
-        selfdestruct(payable(owner));
     }
 
     function managers() external view override returns (address[] memory) {
@@ -127,20 +124,20 @@ contract DAOToken is IDAOToken, ERC20 {
         int24 _tickUpper,
         uint160 _sqrtPriceX96
     ) external payable override onlyOwner {
-        require(lpPool == address(0), 'LP POOL ALREADY EXISTS');
-        require(_baseTokenAmount > 0, 'BASE TOKEN AMOUNT MUST > 0');
-        require(_quoteTokenAmount > 0, 'QUOTE TOKEN AMOUNT MUST > 0');
-        require(_baseTokenAmount <= temporaryAmount, 'NOT ENOUGH TEMPORARYAMOUNT');
-        require(_quoteTokenAddress != address(0), 'QUOTE TOKEN NOT EXIST');
-        require(_quoteTokenAddress != address(this), 'QUOTE TOKEN CAN NOT BE BASE TOKEN');
-        require(_fee == 500 || _fee == 3000 || _fee == 10000, 'FEE INVALID');
+        require(lpPool == address(0), 'LP');
+        require(_baseTokenAmount > 0, 'BTA');
+        require(_quoteTokenAmount > 0, 'QTA');
+        require(_baseTokenAmount <= temporaryAmount, 'NET');
+        require(_quoteTokenAddress != address(0), 'QT1');
+        require(_quoteTokenAddress != address(this), 'QT2');
+        require(_fee == 500 || _fee == 3000 || _fee == 10000, 'FI');
 
         INonfungiblePositionManager inpm = INonfungiblePositionManager(UNISWAP_V3_POSITIONS);
         address pool = IUniswapV3Factory(inpm.factory()).getPool(address(this), _quoteTokenAddress, _fee);
 
-        IERC20(address(this)).safeApprove(UNISWAP_V3_POSITIONS, MAX_UINT256);
+        IERC20(address(this)).safeApprove(UNISWAP_V3_POSITIONS, type(uint256).max);
         if (_quoteTokenAddress != WETH9) {
-            IERC20(_quoteTokenAddress).safeApprove(UNISWAP_V3_POSITIONS, MAX_UINT256);
+            IERC20(_quoteTokenAddress).safeApprove(UNISWAP_V3_POSITIONS, type(uint256).max);
             IERC20(_quoteTokenAddress).safeTransferFrom(_msgSender(), address(this), _quoteTokenAmount);
         }
 
@@ -176,7 +173,7 @@ contract DAOToken is IDAOToken, ERC20 {
             INonfungiblePositionManager(UNISWAP_V3_POSITIONS).refundETH();
             if (address(this).balance > 0) {
                 (bool success, ) = _msgSender().call{value: address(this).balance}(new bytes(0));
-                require(success, 'refundETH failed');
+                require(success, 'RF');
             }
         } else {
             uint256 balance_ = IERC20(_quoteTokenAddress).balanceOf(address(this));
@@ -206,8 +203,8 @@ contract DAOToken is IDAOToken, ERC20 {
         int24 _tickLower,
         int24 _tickUpper
     ) external override onlyOwner {
-        require(_baseTokenAmount <= temporaryAmount, 'NOT ENOUGH TEMPORARYAMOUNT');
-        require(lpPool != address(0), 'NO POOL');
+        require(_baseTokenAmount <= temporaryAmount, 'NET');
+        require(lpPool != address(0), 'NP');
 
         (uint256 amount0, uint256 amount1) = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).mintToLPByTick(
             lpPool,
@@ -231,10 +228,10 @@ contract DAOToken is IDAOToken, ERC20 {
         int24 _tickLower,
         int24 _tickUpper
     ) external override onlyOwnerOrManager {
-        require(_mintTokenAddressList.length == _mintTokenAmountRatioList.length, 'MINT ADDRESS LENGTH INVALID');
-        require(_startTimestamp == _anchor.lastTimestamp, 'START TIMESTAMP INVALID');
-        require(_endTimestamp <= block.timestamp, 'END TIMESTAMP INVALID 1');
-        require(_endTimestamp > _anchor.lastTimestamp, 'END TIMESTAMP INVALID 2');
+        require(_mintTokenAddressList.length == _mintTokenAmountRatioList.length, 'MALI');
+        require(_startTimestamp == _anchor.lastTimestamp, 'STI');
+        require(_endTimestamp <= block.timestamp, 'ET1');
+        require(_endTimestamp > _anchor.lastTimestamp, 'ET2');
         uint256 mintValue = _anchor.total(_endTimestamp);
 
         uint256 ratioSum = 0;
@@ -280,7 +277,7 @@ contract DAOToken is IDAOToken, ERC20 {
 
     function bonusWithdraw() external override {
         uint256 count = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).balanceOf(address(this));
-        require(count > 0, 'NO POOL');
+        require(count > 0, 'NP');
         uint256[] memory tokenIdList = new uint256[](count);
         for (uint256 index = 0; index < count; index++) {
             tokenIdList[index] = INonfungiblePositionManager(UNISWAP_V3_POSITIONS).tokenOfOwnerByIndex(
@@ -330,7 +327,7 @@ contract DAOToken is IDAOToken, ERC20 {
 
     function _bonusWithdrawByTokenIdList(uint256[] memory tokenIdList) private {
         address _staking = IDAOFactory(factory).staking();
-        require(_staking != address(0), 'NO _staking');
+        require(_staking != address(0), 'NS');
         uint256 token0TotalAmount = 0;
         uint256 token1TotalAmount = 0;
 
@@ -348,19 +345,40 @@ contract DAOToken is IDAOToken, ERC20 {
 
         if (token0TotalAmount > 0) {
             uint256 bonusToken0TotalAmount = token0TotalAmount / 100;
-            uint256 stackingToken0TotalAmount = token0TotalAmount - bonusToken0TotalAmount;
-            IERC20(address(lpToken0)).safeTransfer(_staking, stackingToken0TotalAmount);
+            IERC20(address(lpToken0)).safeTransfer(_staking, token0TotalAmount - bonusToken0TotalAmount);
             IERC20(address(lpToken0)).safeTransfer(_msgSender(), bonusToken0TotalAmount);
         }
 
         if (token1TotalAmount > 0) {
             uint256 bonusToken1TotalAmount = token1TotalAmount / 100;
-            uint256 stackingToken1TotalAmount = token1TotalAmount - bonusToken1TotalAmount;
-            IERC20(address(lpToken1)).safeTransfer(_staking, stackingToken1TotalAmount);
+            IERC20(address(lpToken1)).safeTransfer(_staking, token1TotalAmount - bonusToken1TotalAmount);
             IERC20(address(lpToken1)).safeTransfer(_msgSender(), bonusToken1TotalAmount);
         }
 
         emit BonusWithdrawByTokenIdList(_msgSender(), tokenIdList, token0TotalAmount, token1TotalAmount);
+    }
+
+    function getChainId() public view returns (uint256) {
+        uint256 id;
+        assembly {
+            id := chainid()
+        }
+        return id;
+    }
+
+    function deposit(address user, bytes calldata depositData) external {
+        if (getChainId() == 80001) {
+            require(_msgSender() == childChainManagerAddressTest, 'NR');
+        } else {
+            require(_msgSender() == childChainManagerAddressMain, 'NR');
+        }
+
+        uint256 amount = abi.decode(depositData, (uint256));
+        _mint(user, amount);
+    }
+
+    function withdraw(uint256 amount) external {
+        _burn(_msgSender(), amount);
     }
 
     receive() external payable {}

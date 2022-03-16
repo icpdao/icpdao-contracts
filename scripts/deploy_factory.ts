@@ -5,7 +5,7 @@
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
 import { BigNumber } from "@ethersproject/bignumber";
-import { LedgerSigner } from "@ethersproject/hardware-wallets";
+import { LedgerSigner } from "@anders-t/ethers-ledger";
 
 const deployByHardwareWallet = async (
   owner: any,
@@ -15,7 +15,6 @@ const deployByHardwareWallet = async (
 ) => {
   const ledger = await new LedgerSigner(
     ethers.provider,
-    "hid",
     `m/44'/60'/${ledgerIndex}'/0/0`
   );
 
@@ -62,7 +61,10 @@ async function main() {
   // We get the contract to deploy
 
   const owner = "0xcf8834088b3b1e6D39938964a1d2A0c4BA7D4252";
-  const store = "0x6326f5C13526b231Dc7242CD97b7F34B38671158";
+  const store = "0xF9042308e72ED3c0A1fD60000B995967b26c2CCf";
+
+  // const owner = "0x9C292D2Ff25E8d00C0c082775102ADd0CD16645A";
+  // const store = "0x772Bd6D46c35cC7882c1a9cebB33c928A1Ea0B72";
 
   const ledgerIndex = 2; // Ledger from 0 start
   const gasGwei = 3;

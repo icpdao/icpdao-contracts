@@ -467,7 +467,7 @@ describe("IcpdaoDaoToken.rule.1.reverse", () => {
                     gasPrice: gasPrice
                 }
             )
-        ).to.be.revertedWith("LP POOL ALREADY EXISTS");
+        ).to.be.revertedWith("LP");
 
         expect(
             (await nonfungiblePositionManager.balanceOf(icpdaoDaoToken.address)).toNumber()
@@ -580,7 +580,7 @@ describe("IcpdaoDaoToken.rule.1.reverse", () => {
                     gasPrice: gasPrice
                 }
             )
-        ).to.be.revertedWith("LP POOL ALREADY EXISTS");
+        ).to.be.revertedWith("LP");
 
     })
 
@@ -601,7 +601,7 @@ describe("IcpdaoDaoToken.rule.1.reverse", () => {
             icpdaoDaoTokenForUpdate.connect(ownerAccount).updateLPPool(
                 1,0,0
             )
-        ).to.be.revertedWith("NO POOL");
+        ).to.be.revertedWith("NP");
 
         const [mockPool, position] = getCreatePoolAndPosition(
             FeeAmount.LOW,
@@ -673,7 +673,7 @@ describe("IcpdaoDaoToken.rule.1.reverse", () => {
                 tickLowerMint,
                 tickUpperMint
             )
-        ).to.be.revertedWith("NOT ENOUGH TEMPORARYAMOUNT")
+        ).to.be.revertedWith("NET")
 
         await (await icpdaoDaoTokenForUpdate.connect(ownerAccount).updateLPPool(
             (await icpdaoDaoTokenForUpdate.temporaryAmount()),
@@ -741,7 +741,7 @@ describe("IcpdaoDaoToken.rule.1.reverse", () => {
                 tickLowerMint,
                 tickUpperMint
             )
-        ).to.revertedWith("START TIMESTAMP INVALID")
+        ).to.revertedWith("STI")
 
         await expect(
             icpdaoDaoToken.connect(ownerAccount).mint(
@@ -752,7 +752,7 @@ describe("IcpdaoDaoToken.rule.1.reverse", () => {
                 tickLowerMint,
                 tickUpperMint
             )
-        ).to.revertedWith("END TIMESTAMP INVALID 1")
+        ).to.revertedWith("ET1")
 
         await expect(
             icpdaoDaoToken.connect(ownerAccount).mint(
@@ -763,7 +763,7 @@ describe("IcpdaoDaoToken.rule.1.reverse", () => {
                 tickLowerMint,
                 tickUpperMint
             )
-        ).to.revertedWith("END TIMESTAMP INVALID 2")
+        ).to.revertedWith("ET2")
 
     })
 
@@ -788,7 +788,7 @@ describe("IcpdaoDaoToken.rule.1.reverse", () => {
     it("bonusWithdraw", async () => {
         await expect(
             icpdaoDaoTokenForBonusWithdraw.connect(user3Account).bonusWithdraw()
-        ).to.revertedWith("NO POOL")
+        ).to.revertedWith("NP")
         const [mockPool, position] = getCreatePoolAndPosition(
             FeeAmount.LOW,
             icpdaoDaoTokenForBonusWithdraw.address, weth9Address,
@@ -906,7 +906,7 @@ describe("IcpdaoDaoToken.rule.1.reverse", () => {
 
         await expect(
             icpdaoDaoTokenForBonusWithdraw.bonusWithdraw()
-        ).to.revertedWith("NO _staking")
+        ).to.revertedWith("NS")
 
         await (await store2.connect(ownerAccount).setStaking(stakingAddress)).wait()
 
@@ -923,7 +923,7 @@ describe("IcpdaoDaoToken.rule.1.reverse", () => {
         await (await store3.connect(ownerAccount).setStaking(stakingAddress)).wait()
         await expect(
             icpdaoDaoTokenForBonusWithdrawByTokenIdList.connect(user3Account).bonusWithdraw()
-        ).to.revertedWith("NO POOL")
+        ).to.revertedWith("NP")
         const [mockPool, position] = getCreatePoolAndPosition(
             FeeAmount.LOW,
             icpdaoDaoTokenForBonusWithdrawByTokenIdList.address, weth9Address,

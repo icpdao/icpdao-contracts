@@ -70,7 +70,7 @@ describe("DAOFactory", async () => {
                 "MockDAO1",
                 "MD1"
             )
-        ).to.be.revertedWith("NOT OWNER DO REDEPLOY");
+        ).to.be.revertedWith("NODR");
 
         let {token: newTokenAddress} = await daoFactory.tokens("mock_dao_id_1");
         let newToken = await ethers.getContractAt(
@@ -165,10 +165,10 @@ describe("DAOFactory", async () => {
 
         await (await store.addFactory(_daoFactory.address)).wait();
 
-        await expect(
-            _daoFactory.connect(w2).destruct()
-        ).to.be.revertedWith("Ownable: caller is not the owner")
+        // await expect(
+        //     _daoFactory.connect(w2).destruct()
+        // ).to.be.revertedWith("Ownable: caller is not the owner")
 
-        await _daoFactory.connect(w1).destruct()
+        // await _daoFactory.connect(w1).destruct()
     })
 })

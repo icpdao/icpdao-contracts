@@ -5,12 +5,11 @@
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
 import { BigNumber } from "@ethersproject/bignumber";
-import { LedgerSigner } from "@ethersproject/hardware-wallets";
+import { LedgerSigner } from "@anders-t/ethers-ledger";
 
 const deployByHardwareWallet = async (owner: string, gasGwei: any, ledgerIndex: any) => {
   const ledger = await new LedgerSigner(
     ethers.provider,
-    "hid",
     `m/44'/60'/${ledgerIndex}'/0/0`
   );
 
@@ -57,6 +56,7 @@ async function main() {
   const ledgerIndex = 2; // Ledger from 0 start
   const gasGwei = 3;
   const owner = "0xcf8834088b3b1e6D39938964a1d2A0c4BA7D4252";
+  // const owner = "0x9C292D2Ff25E8d00C0c082775102ADd0CD16645A";
 
   // await deployByEnvAccount(owner, gasGwei);
   await deployByHardwareWallet(owner, gasGwei, ledgerIndex);
@@ -67,4 +67,10 @@ async function main() {
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
+});
+
+
+process.on('unhandledRejection', (reason, p) => {
+  console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+  // application specific logging, throwing an error, or other logic here
 });

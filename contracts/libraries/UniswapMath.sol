@@ -82,10 +82,6 @@ library UniswapMath {
             amount1Desired = _quoteTokenAmount;
         }
 
-        uint256 amount0Min = (amount0Desired * 0) / 10;
-        uint256 amount1Min = (amount1Desired * 0) / 10;
-        uint256 deadline = block.timestamp + 60 * 60;
-
         params = INonfungiblePositionManager.MintParams({
             token0: token0,
             token1: token1,
@@ -94,10 +90,10 @@ library UniswapMath {
             tickUpper: tickUpper,
             amount0Desired: amount0Desired,
             amount1Desired: amount1Desired,
-            amount0Min: amount0Min,
-            amount1Min: amount1Min,
+            amount0Min: 0,
+            amount1Min: 0,
             recipient: address(this),
-            deadline: deadline
+            deadline: block.timestamp + 60 * 60
         });
     }
 
@@ -137,8 +133,7 @@ library UniswapMath {
     ) internal pure returns (int24 tickLower) {
         // 比 tick 大
         // TODO 测试
-        int24 bei = (getUpperTick(fee) - tick) / tickSpacing;
-        tickLower = getUpperTick(fee) - tickSpacing * bei;
+        tickLower = getUpperTick(fee) - tickSpacing * ((getUpperTick(fee) - tick) / tickSpacing);
     }
 
     function getNearestTickUpper(
@@ -148,8 +143,7 @@ library UniswapMath {
     ) internal pure returns (int24 tickLower) {
         // 比 tick 小
         // TODO 测试
-        int24 bei = (tick - getLowerTick(fee)) / tickSpacing;
-        tickLower = getLowerTick(fee) + tickSpacing * bei;
+        tickLower = getLowerTick(fee) + tickSpacing * ((tick - getLowerTick(fee)) / tickSpacing);
     }
 
     function mintToLPByTick(

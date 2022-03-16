@@ -611,7 +611,7 @@ describe("IcpdaoDaoToken.reverse", () => {
 
         await expect(
             icpdaoDaoToken.connect(ownerAccount).bonusWithdraw()
-        ).to.be.revertedWith("NO _staking");
+        ).to.be.revertedWith("NS");
 
         await (await store.connect(ownerAccount).setStaking(stakingAddress)).wait();
 
@@ -848,7 +848,7 @@ describe("IcpdaoDaoToken.reverse", () => {
 
         await expect(
             icpdaoDaoToken.connect(ownerAccount).bonusWithdrawByTokenIdList(tokenIdList)
-        ).to.be.revertedWith("NO _staking");
+        ).to.be.revertedWith("NS");
 
         await (await store.connect(ownerAccount).setStaking(stakingAddress)).wait();
 
@@ -939,7 +939,7 @@ describe("IcpdaoDaoToken.reverse", () => {
                 "icp-token",
                 "ICP"
             )
-        ).to.be.revertedWith('NOT OWNER DO REDEPLOY')
+        ).to.be.revertedWith('NODR')
 
         // owner redeploy
         await (await icpdaoDaoTokenFactory.connect(ownerAccount).deploy(
@@ -987,7 +987,7 @@ describe("IcpdaoDaoToken.reverse", () => {
                 "icp-token",
                 "ICP"
             )
-        ).to.be.revertedWith("NOT OWNER DO REDEPLOY");
+        ).to.be.revertedWith("NODR");
     })
 
     it("test manager and owner", async () => {
@@ -1333,10 +1333,10 @@ describe("IcpdaoDaoToken.reverse", () => {
 
         expect(await icpdaoDaoToken.balanceOf(icpdaoDaoToken.address)).eq(tokenCount.mul(3).mul(101).div(100))
 
-        await expect(
-            icpdaoDaoToken.connect(user1Account).destruct()
-        ).to.be.revertedWith("onlyOwner")
+        // await expect(
+        //     icpdaoDaoToken.connect(user1Account).destruct()
+        // ).to.be.revertedWith("onlyOwner")
 
-        await icpdaoDaoToken.connect(ownerAccount).destruct()
+        // await icpdaoDaoToken.connect(ownerAccount).destruct()
     })
 })

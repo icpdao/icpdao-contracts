@@ -8,25 +8,25 @@ import hre from "hardhat";
 
 async function main() {
     await hre.run("verify:verify", {
-        address: "0x6fbc77cBFC59D201DC03e004203734E0faE10D3E",
+        address: "0x31d51b5D8a477A138BB4001b52eaB0064cb706Ec",
         constructorArguments: [
-            ["0x98080C43486FfA945f7FA4A7d40B699Ff404798B"],
-            ["525900000000000000000000"],
-            155,
-            "900000000000000000000000",
-            "0x7b728FD84995fAC43A500Ae144A1e121916E5c07",
-            "0xcf8834088b3b1e6D39938964a1d2A0c4BA7D4252",
+            ["0x07dfB1959eE4c94Bc0704425a299941de0662c2a"],
+            ["2000000000000000000000"],
+            100,
+            "20000000000000000000000",
+            "0x865A1691DF940507792ca927916ee324E1B9CB2b",
+            "0x9C292D2Ff25E8d00C0c082775102ADd0CD16645A",
             {
-                p: "3333000000000000000000",
+                p: "20000000000000000000",
                 aNumerator: 5,
                 aDenominator: 10,
                 bNumerator: 1,
-                bDenominator: 730,
+                bDenominator: 300,
                 c: 0,
                 d: 0,
             },
-            "Builder of PEOPLELAND",
-            "BUILDER",
+            "TF23",
+            "TF23",
         ],
       });
 }
